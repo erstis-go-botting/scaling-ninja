@@ -8,6 +8,7 @@ from crawl.dataminer import FarmTargetHandler
 from tools.toolbox import print_cstring
 import time
 import thread
+from pprint import pprint
 
 
 
@@ -25,7 +26,10 @@ def main():
     #print data.ressources
     #print data.var_game_settings
 
-    print_cstring('Rank: '+ ai.var_game_settings['player']['rank'], 'red')
+    print 'Statistics:\n'
+    pprint(ai.statistics)
+    print ''
+    ai.close()
 
     print '#'*100
 

@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from ConfigParser import ConfigParser
 from tools import toolbox
 
+import cPickle as pickle
 
 class BotContainer(object):
     """
@@ -33,6 +34,14 @@ class BotContainer(object):
         self.browser.addheaders = [("User-Agent",
                                     "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0")]
         self.browser.set_handle_robots(False)
+
+        # Initialize the statistics object
+        try:
+            self.statistics = pickle.load(open('storage/pkl_file', 'rb'))
+        except IOError:
+            # If there are no statistics as of right now we are gonna create them.
+            self.statistics = {'units_built': {'axe': 0, 'sword': 0, 'archer': 0, 'spear': 0, 'light': 0,'heavy': 0,
+            'marcher': 0, 'spy': 0, 'ram': 0, 'catapult': 0}, 'buildings_constructed': 0, 'trades_conducted': 0}
 
         # dummy initialize the attributes
         self.ressources = dict()
@@ -364,3 +373,7 @@ class BotContainer(object):
         except TypeError:
             print 'dataminer.var_game_data got no json object. this shouldn\'t happen'
             raise TypeError
+
+    def close(self):
+        # save our statistics
+        pickle.dump(self.statistics, open('storage/pkl_file', 'wb'))

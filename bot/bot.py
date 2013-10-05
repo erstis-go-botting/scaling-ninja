@@ -71,6 +71,7 @@ class Bot(BotContainer):
                 self.browser.follow_link(self.browser.find_link(url_regex=
                 re.compile("upgrade_building.+id=%s" % building)))
                 print_cstring("Building: [%s]" % building, 'yellow')
+                self.statistics['buildings_constructed'] += 1
             except LinkNotFoundError:
                 print_cstring( 'fuck that shit, not enough ressources to build [%s]' % building, 'red')
 
@@ -103,6 +104,7 @@ class Bot(BotContainer):
             self.browser.form[ "max_time" ] = str( max_time )
             self.browser.form[ "multi" ] = str( trader_count )
             self.browser.submit( )
+            self.statistics['trades_conducted'] += trader_count
 
 
         self.open( 'market&mode=send' )
@@ -115,7 +117,6 @@ class Bot(BotContainer):
             if re.compile( r"ndler: [0-9]+[/][0-9]+" ).search( line ):
                 curtrader, maxtrader, = map(int, re.compile( r"[0-9]+" ).findall( line )[ :2 ])
 
-        print "Trader: [{curtrader}/{maxtrader}]".format(**locals())
 
         # no point in trading if we haven't got any traders...
         if not curtrader:
@@ -304,6 +305,8 @@ class Bot(BotContainer):
         """
         def make_units(unit, quantity):
             barrack_units = ['spear', 'axe', 'sword', 'archer']
+
+            # barracks, yay
             if unit in barrack_units:
                 self.open("barracks")
 
@@ -313,10 +316,15 @@ class Bot(BotContainer):
                     self.browser.submit( )
                     print "Training [" + str( quantity ) + "] " + unit + "s"
 
+                    self.statistics['units_built'][unit] += quantity
+
+
                 except mechanize.ControlNotFoundError:
                     print "Units are unavailable"
 
-        if self.units['barracks_time'] < 10:
+
+
+        if self.units['barracks_time'] < 10*60:
             make_units('axe', 10)
 
 
