@@ -220,17 +220,17 @@ class BotContainer(object):
             # Soup von der ganzen Seite -> Alle Reihen finden -> zweitletzte Spalte finden
             # diese Werte dort drin jeweils einer Einheit zuordnen.
             units['barracks_time'] = 0
-            try:
-                rows = soup.find_all(class_='row_a')
-                for i, element in enumerate(b_units):
-                    try:
-                        temp = rows[i].find_all('td')[-2].string.split(r'/')
-                        units[element] = {'available': int(temp[0]), 'all': int(temp[1])}
-                    except IndexError:
-                        units[element] = {'available': 0, 'all': 0}
 
+            rows = soup.find_all(class_='row_a')
+            for i, element in enumerate(b_units):
+                try:
+                    temp = rows[i].find_all('td')[-2].string.split(r'/')
+                    units[element] = {'available': int(temp[0]), 'all': int(temp[1])}
+                except IndexError:
+                    units[element] = {'available': 0, 'all': 0}
+
+            try:
                 # Gets units which are beeing built atm and the queue time.
-                # TODO implement no queue
                 current_queue = soup.find('div', class_='trainqueue_wrap').find_all('tr')
                 if len(current_queue) == 2:
                     current_queue = [current_queue[1]]
@@ -248,20 +248,14 @@ class BotContainer(object):
 
                     units[art]['available'] += int(count)
                     units['barracks_time'] += int(time)
+
             except AttributeError:
                 units['barracks_time'] += 0
-
-
-
-
-
-
 
         def stable():
             """
             Fetches all stable units
             """
-            # TODO this is just a dummy version
             s_units = ['spy', 'light', 'marcher', 'heavy']
             self.open('stable')
             soup = BeautifulSoup(self.browser.response().read())
@@ -280,6 +274,31 @@ class BotContainer(object):
                     units[element] = {'available': int(temp[0]), 'all': int(temp[1])}
                 except IndexError:
                     units[element] = 'None'
+
+            units[ 'stable_time' ] = 0
+            try:
+                # Gets units which are beeing built atm and the queue time.
+                current_queue = soup.find( 'div', class_ = 'trainqueue_wrap' ).find_all( 'tr' )
+                if len( current_queue ) == 2:
+                    current_queue = [ current_queue[ 1 ] ]
+                else:
+                    current_queue = current_queue[ 1:-1 ]
+
+                for element in current_queue:
+                    art = re.findall( r'smaller (.+)">', str( element.div ) )[ 0 ]
+                    count = element.td.contents[ -1 ].strip( ).split( )[ 0 ]
+
+                    try:
+                        timelist = map( int, element.span.string.split( ':' ) )
+                    except AttributeError:
+                        timelist = map( int, re.findall( r'\d+', str( element ) )[ 2:5 ] )
+                    time = 60 * 60 * timelist[ 0 ] + 60 * timelist[ 1 ] + timelist[ 2 ]
+
+                    units[ art ][ 'available' ] += int( count )
+                    units[ 'stable_time' ] += int( time )
+
+            except AttributeError:
+                units[ 'stable_time' ] += 0
 
         def garage():
             """

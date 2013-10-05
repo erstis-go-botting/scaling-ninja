@@ -11,27 +11,18 @@ import thread
 from pprint import pprint
 
 
-
 def main():
     ai = Bot()
     ai.construct()
     ai.trade()
     ai.recruit()
-
-
-    # TODO ASK FOR PREMIUM
-    # TODO http://www.jetbrains.com/teamcity/
-
-    #print data.units
-    #print data.ressources
-    #print data.var_game_settings
-
-    print 'Statistics:\n'
-    pprint(ai.statistics)
-    print ''
     ai.close()
 
-    print '#'*100
+    print '\nStatistics:\n'
+    pprint(ai.statistics)
+    print ''
+
+    print_cstring('#'*100, 'yellow')
 
 
 while 1:

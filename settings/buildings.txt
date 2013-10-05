@@ -62,10 +62,13 @@ main 15
 stone 22
 wood 22
 iron 22
+main 20
+smithy 10
 
 stone 25
 wood 25
 iron 25
+smithy 20
 stone 27
 wood 27
 iron 27

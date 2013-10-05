@@ -40,14 +40,14 @@ class Bot(BotContainer):
 
         # is the storage very full?
         for element in ['stone', 'wood', 'iron']:
-            if self.ressources[element] > self.ressources['storage'] * 0.7:
+            if self.ressources[element] > self.ressources['storage'] * 0.85:
                 self.storage_critical = 1
                 break
             else:
                 self.storage_critical = 0
 
         # is the farm very full?
-        if self.ressources['pop_now'] > self.ressources['pop_max'] * 0.75:
+        if self.ressources['pop_now'] > self.ressources['pop_max'] * 0.8:
             self.pop_critical = 1
         else:
             self.pop_critical = 0
@@ -75,9 +75,15 @@ class Bot(BotContainer):
             except LinkNotFoundError:
                 print_cstring( 'fuck that shit, not enough ressources to build [%s]' % building, 'red')
 
-        if self.pop_critical and 'farm' in self.buildable:
+        # making sure to build storage & farm only when needed.
+        self.open('main')
+        html = self.browser.response().read()
+        farm_building = '\t\t\tBauernhof<br />\n\t\t\tStufe' in html
+        storage_building = '\t\t\tSpeicher<br />\n\t\t\tStufe' in html
+
+        if self.pop_critical and 'farm' in self.buildable and not farm_building:
             build( 'farm' )
-        elif self.storage_critical and 'storage' in self.buildable:
+        elif self.storage_critical and 'storage' in self.buildable and not storage_building:
             build('storage')
         elif self.next_building in self.buildable:
             build(self.next_building)
@@ -304,28 +310,38 @@ class Bot(BotContainer):
 
         """
         def make_units(unit, quantity):
+            """
+            Just a little function which tries to recruit units
+            in the given quantity.
+            """
             barrack_units = ['spear', 'axe', 'sword', 'archer']
+            stable_units = ['spy', 'light', 'heavy', 'marcher']
 
-            # barracks, yay
             if unit in barrack_units:
                 self.open("barracks")
 
-                self.browser.select_form( nr = 0 )
-                try:
-                    self.browser.form[ unit ] = str( quantity )
-                    self.browser.submit( )
-                    print "Training [" + str( quantity ) + "] " + unit + "s"
+            elif unit in stable_units:
+                self.open("stable")
 
-                    self.statistics['units_built'][unit] += quantity
+            else:
+                print 'invalid unit: {unit}'.format(unit=unit)
 
 
-                except mechanize.ControlNotFoundError:
-                    print "Units are unavailable"
+            self.browser.select_form( nr = 0 )
+            try:
+                self.browser.form[ unit ] = str( quantity )
+                self.browser.submit( )
+                print "Training [" + str( quantity ) + "] " + unit + "s"
+                self.statistics[ 'units_built' ][ unit ] += quantity
+            except mechanize.ControlNotFoundError:
+                print "{unit} control not found".format(unit=unit)
 
 
-
-        if self.units['barracks_time'] < 10*60:
+        if self.units['barracks_time'] < 10*60 or self.storage_critical:
             make_units('axe', 10)
+
+        if self.units['stable_time'] < 10*60 or self.storage_critical:
+            make_units('light', 5)
 
 
 
