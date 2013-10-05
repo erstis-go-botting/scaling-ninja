@@ -18,11 +18,17 @@ def main():
     ai.recruit()
     ai.close()
 
-    print '\nStatistics:\n'
-    pprint(ai.statistics)
-    print ''
+    print_cstring( '\nRank: ' + ai.var_game_settings[ 'player' ][ 'rank' ], 'blue' )
 
-    print_cstring('#'*100, 'yellow')
+    igm = int(ai.var_game_settings['player']['new_igm'])
+    modifier = 's' if igm > 1 else ''
+    if igm:
+        print_cstring('You got {igm} new ingame message{modifier}!'.format(**locals()), 'red')
+
+    print '\nStatistics:'
+    pprint(ai.statistics)
+
+    print_cstring('#'*100+'\n', 'yellow')
 
 
 while 1:
