@@ -17,9 +17,6 @@ def main():
     ai.trade()
     ai.recruit()
 
-    if ai.config.getint( 'control', 'pause' ):
-        print 'EXECUTION PAUSED'
-        return
 
     # TODO ASK FOR PREMIUM
     # TODO http://www.jetbrains.com/teamcity/
@@ -29,7 +26,6 @@ def main():
     #print data.var_game_settings
 
     print_cstring('Rank: '+ ai.var_game_settings['player']['rank'], 'red')
-
 
     print '#'*100
 
