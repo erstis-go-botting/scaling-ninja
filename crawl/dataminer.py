@@ -1,0 +1,102 @@
+# coding=utf-8
+__author__ = 'sudo'
+
+from bs4 import BeautifulSoup
+from json import loads
+import re
+
+
+class FarmTargetHandler(object):
+    """
+    A class for data handling related to farming
+    """
+    def __init__(self, bot):
+        """
+        Get that juicy data container class
+        """
+
+        self.bot = bot
+        self.raw_map = self.analyze_map
+
+    def analyze_map(self):
+
+        """
+        Analyzes the mapz
+        and creates the raw_map dictionary with loads of entries. looks like this:
+        {village_id: {'noobprot': 1, 'barb': 0, 'player_id': u'8891339', 'points': 79, 'y': 343, 'x': 704}}
+        """
+
+        x, y = self.bot.var_game_settings['village']['coord'].split('|')
+        goto = 'http://{self.bot.world}.die-staemme.de/game.php?x={x}&y={y}&screen=map#{x};{y}'.format(**locals())
+        self.bot.browser.open(goto)
+        htmllines = self.bot.browser.response().readlines()
+
+        prefech = str()
+        for line in htmllines:
+            if 'TWMap.sectorPrefech' in line:
+                prefech = line
+                break
+
+        if not prefech:
+            print 'prefech not defined'
+            raise
+
+        prefech = loads(prefech.split(' = ', 1)[1][:-2])
+        raw_map = dict()
+
+        for superlist in prefech:
+            base_x, base_y = superlist['data']['x'], superlist['data']['y']
+
+            sublist = superlist['data']['villages']
+            # some of those sublists are dictionaries, some of them are lists.
+            # we need them to be of the same format for proper parsing
+            temp_equal = dict()
+            if type(sublist) is dict:
+                temp_equal = sublist
+            elif type(sublist) is list:
+                for i, element in enumerate(sublist):
+                    temp_equal[str(i)] = element
+            else:
+                print 'Unexpected type encountered in analyze_map'
+                raise
+
+            sublist = temp_equal
+            del temp_equal
+
+            for x_modifier in sublist:
+                for y_modifier in sublist[x_modifier]:
+                    village = sublist[x_modifier][y_modifier]
+                    # village is in the form: [u'69473', 7, u'Kentucky', u'342', u'9641899', u'100']
+                    # a barbarian village is: [u'68444', 4, 0, u'47', u'0', u'100']
+                    # [0] = villageid, [1] = ?, [2] = village_name, [3] = village_points, [4] = player_id, [5] = ?
+
+                    # accessing the account owner: superlist['data']['players'][player_id]
+                    # which looks like: [u'K\xf6nig Grauer Wolf', u'67', u'839', 0]
+                    # [0] = name, [1] = points, [2] = alliance_id, [3] = 0 if no noobprot, else string.
+
+                    village_id = village[0]
+                    player_id = village[4]
+                    village_x = int(x_modifier) + int(base_x)
+                    village_y = int(y_modifier) + int(base_y)
+
+                    if player_id == '0':
+                        player_points = village[3]
+                        noobprot = 0
+                        barbarian = 1
+                    else:
+                        barbarian = 0
+                        player_points = superlist['data']['players'][player_id][1]
+                        noobprot = superlist['data']['players'][player_id][3]
+                    if noobprot:
+                        # 1 is more usefull than a string, which we would need to parse for time
+                        noobprot = 1
+
+                    if village_id in raw_map.keys():
+                        # there seeme to be a lot of duplicates in this list, which is possibly a bug
+                        # of DS. doesn't harm though, so we are just ignoring it.
+                        pass
+                    else:
+                        raw_map[village_id] = {'x': village_x, 'y': village_y, 'player_id': player_id,
+                                               'points': int(player_points), 'noobprot': noobprot, 'barb': barbarian}
+
+        return raw_map

@@ -1,0 +1,73 @@
+simple = BotContainer()
+simple.init()
+
+print simple.ressources
+{'stone': 145, 'pop_now': 62, 'storage': 1000, 'wood': 113, 'pop_max': 240, 'iron': 221}
+
+print simple.units
+{'spy': 'None', 'spear': {'available': 10, 'all': 10}, 'ram': 'None', 'archer': {'available': 0, 'all': 0}, 'sword': {'available': 10, 'all': 10}, 'axe': {'available': 0, 'all': 0}}
+
+print simple.worldsettings
+{u'Paladin': 0, u'Archer': 1, u'Miliz': 0, u'Kirche': 0}
+
+############################################################
+
+self.var_game_settings:
+
+{u'RTL': False,
+ u'csrf': u'1d8b',
+ u'device': u'desktop',
+ u'link_base': u'/game.php?village=74379&amp;screen=',
+ u'link_base_pure': u'/game.php?village=74379&screen=',
+ u'majorVersion': u'8.15',
+ u'market': u'de',
+ u'mode': None,
+ u'nav': {u'parent': 1},
+ u'player': {u'account_manager': False,
+             u'ally_id': u'0',
+             u'farm_manager': False,
+             u'id': u'10266617',
+             u'incomings': u'0',
+             u'name': u'.code',
+             u'points': u'65',
+             u'premium': False,
+             u'quest_progress': u'0',
+             u'rank': u'17269',
+             u'sitter_id': u'0',
+             u'villages': u'1'},
+ u'screen': u'overview',
+ u'version': u'18588 8.15',
+ u'village': {u'bonus': None,
+              u'buildings': {u'barracks': u'1',
+                             u'church': u'0',
+                             u'church_f': u'0',
+                             u'farm': u'1',
+                             u'garage': u'0',
+                             u'hide': u'1',
+                             u'iron': u'1',
+                             u'main': u'3',
+                             u'market': u'0',
+                             u'place': u'1',
+                             u'smith': u'0',
+                             u'snob': u'0',
+                             u'stable': u'0',
+                             u'statue': u'0',
+                             u'stone': u'1',
+                             u'storage': u'1',
+                             u'wall': u'0',
+                             u'wood': u'2'},
+              u'con': u'K36',
+              u'coord': u'692|333',
+              u'group': u'0',
+              u'id': 74379,
+              u'name': u'.codes Dorf',
+              u'res': [119,
+                       0.0096926503579456,
+                       150,
+                       0.008333333333,
+                       226,
+                       0.008333333333,
+                       u'1000',
+                       u'62',
+                       u'240']},
+ u'world': u'de97'}
