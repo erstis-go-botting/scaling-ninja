@@ -338,6 +338,9 @@ class Bot(BotContainer):
         if self.units['stable_time'] < 10*60 or self.storage_critical:
             make_units('light', 5)
 
+        if self.units['garage_time'] < 10*60 or self.storage_critical:
+            make_units('catapult', 5)
+
 
 
 

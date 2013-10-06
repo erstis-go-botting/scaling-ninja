@@ -281,7 +281,32 @@ class BotContainer(object):
             if 'nicht vorhanden' in str(soup):
                 for element in g_units:
                     units[element] = 'None'
-                return
+
+                units[ 'garage_time' ] = 0
+
+            try:
+                # Gets units which are beeing built atm and the queue time.
+                current_queue = soup.find( 'div', class_ = 'trainqueue_wrap' ).find_all( 'tr' )
+                if len( current_queue ) == 2:
+                    current_queue = [ current_queue[ 1 ] ]
+                else:
+                    current_queue = current_queue[ 1:-1 ]
+
+                for element in current_queue:
+                    art = re.findall( r'smaller (.+)">', str( element.div ) )[ 0 ]
+                    count = element.td.contents[ -1 ].strip( ).split( )[ 0 ]
+
+                    try:
+                        timelist = map( int, element.span.string.split( ':' ) )
+                    except AttributeError:
+                        timelist = map( int, re.findall( r'\d+', str( element ) )[ 2:5 ] )
+                    time = 60 * 60 * timelist[ 0 ] + 60 * timelist[ 1 ] + timelist[ 2 ]
+
+                    units[ art ][ 'available' ] += int( count )
+                    units[ 'garage_time' ] += int( time )
+
+            except AttributeError:
+                units[ 'garage_time' ] += 0
 
 
             # Soup von der ganzen Seite -> Alle Reihen finden -> zweitletzte Spalte finden
