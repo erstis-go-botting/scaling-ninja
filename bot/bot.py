@@ -35,10 +35,8 @@ class Bot(BotContainer):
 
     - farm
     """
-    def __init__(self):
-        BotContainer.__init__(self)
-
-        self.keep_awake()
+    def __init__(self, br):
+        BotContainer.__init__(self, br=br)
 
         # is the storage very full?
         for element in ['stone', 'wood', 'iron']:
@@ -298,7 +296,7 @@ class Bot(BotContainer):
         #endregion
 
         do_trade(buy, sell, count, max_time=3)
-    
+
     def recruit(self):
         """
         A function to recruit units
@@ -345,22 +343,6 @@ class Bot(BotContainer):
         if self.units['stable_time'] < 10*60 or self.storage_critical:
             make_units('light', 5)
 
-    @staticmethod
-    def keep_awake():
-        """
-        This function uses the SetThreadExecutionState function
-        to keep the computer awake.
-
-        Documentation can be found here:
-        http://msdn.microsoft.com/en-us/library/windows/desktop/aa373208%28v=vs.85%29.aspx
-        """
-
-        KERNEL32 = ctypes.windll.LoadLibrary( "Kernel32.dll" )
-        ES_SYSTEM_REQUIRED = 0x00000001
-        # from the MSDN:
-        # ES_SYSTEM_REQUIRED
-        # Forces the system to be in the working state by resetting the system idle timer.
-        KERNEL32.SetThreadExecutionState( ctypes.c_int( ES_SYSTEM_REQUIRED ) )
 
 
 

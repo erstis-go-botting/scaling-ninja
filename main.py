@@ -2,17 +2,14 @@
 __author__ = 'sudo'
 
 
-from crawl.botContainer import BotContainer
 from bot.bot import Bot
-from crawl.dataminer import FarmTargetHandler
-from tools.toolbox import print_cstring
-import time
+from tools.toolbox import print_cstring, wait_dont_sleep
 import thread
 from pprint import pprint
+import tools.toolbox
 
-
-def main():
-    ai = Bot()
+def main(br):
+    ai = Bot(br)
     ai.construct()
     ai.trade()
     ai.recruit()
@@ -27,10 +24,16 @@ def main():
 
     print '\nStatistics:'
     pprint(ai.statistics)
-
     print_cstring('#'*100+'\n', 'yellow')
 
 
+browser = tools.toolbox.make_browser()
 while 1:
-    thread.start_new_thread(main, tuple())
-    time.sleep(500)
+    if tools.toolbox.is_logged_in(browser):
+        thread.start_new_thread(main, (browser,))
+    else:
+        if tools.toolbox.login(browser):
+            thread.start_new_thread(main, (browser,))
+        # bei einem nicht erfolgreichen login versuchen wir es einfach später noch einmal
+
+    wait_dont_sleep(400)

@@ -16,7 +16,7 @@ class BotContainer(object):
     """
     The BotContainer class is awesome.
     """
-    def __init__(self):
+    def __init__(self, br):
         """
         Sets up basic attributes, which we will heavily rely on.
         All settings are loaded from settings\settings.ini
@@ -30,10 +30,7 @@ class BotContainer(object):
         self.password = self.config.get('credentials', 'password')
 
         # initiate the browser.
-        self.browser = mechanize.Browser(factory=mechanize.RobustFactory())
-        self.browser.addheaders = [("User-Agent",
-                                    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0")]
-        self.browser.set_handle_robots(False)
+        self.browser = br
 
         # Initialize the statistics object
         try:
@@ -54,9 +51,9 @@ class BotContainer(object):
         self.parse_worldsettings()
 
         # log in!
-        if not self.login():
+  #      if not self.login():
             # TODO handle login failures
-            exit()
+   #         exit()
 
         # Fetch all data from die-stämme (ressources, units usw...)
         self.refresh_all()
@@ -98,6 +95,7 @@ class BotContainer(object):
 
         :return: Returns boolean Value.
         """
+        print 'hi'
 
         parameters = {'user': self.username,
                       'password': self.password}
