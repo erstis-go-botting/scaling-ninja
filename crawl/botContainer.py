@@ -274,18 +274,18 @@ class BotContainer(object):
             Fetches all garage units
             """
             # TODO this is just a dummy version
-            g_units = ['ram', 'catapult']
+            garage_units = ['ram', 'catapult']
             self.open('garage')
             soup = BeautifulSoup(self.browser.response().read())
 
             if 'nicht vorhanden' in str(soup):
-                for element in g_units:
+                for element in garage_units:
                     units[element] = 'None'
 
             # Soup von der ganzen Seite -> Alle Reihen finden -> zweitletzte Spalte finden
             # diese Werte dort drin jeweils einer Einheit zuordnen.
             rows = soup.find_all(class_='row_a')
-            for i, element in enumerate(g_units):
+            for i, element in enumerate(garage_units):
                 try:
                     temp = rows[i].find_all('td')[-2].string.split(r'/')
                     units[element] = {'available': int(temp[0]), 'all': int(temp[1])}

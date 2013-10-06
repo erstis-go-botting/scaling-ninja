@@ -311,12 +311,16 @@ class Bot(BotContainer):
             """
             barrack_units = ['spear', 'axe', 'sword', 'archer']
             stable_units = ['spy', 'light', 'heavy', 'marcher']
+            garage_units = ['ram','catapult']
 
             if unit in barrack_units:
                 self.open("barracks")
 
             elif unit in stable_units:
                 self.open("stable")
+
+            elif unit in garage_units:
+                self.open("garage")
 
             else:
                 print 'invalid unit: {unit}'.format(unit=unit)
