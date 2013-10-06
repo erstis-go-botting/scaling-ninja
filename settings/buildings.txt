@@ -65,7 +65,7 @@ iron 22
 main 20
 smith 10
 garage 1
-barracks 15
+
 
 stone 25
 wood 25
