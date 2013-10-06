@@ -282,6 +282,16 @@ class BotContainer(object):
                 for element in g_units:
                     units[element] = 'None'
 
+            # Soup von der ganzen Seite -> Alle Reihen finden -> zweitletzte Spalte finden
+            # diese Werte dort drin jeweils einer Einheit zuordnen.
+            rows = soup.find_all(class_='row_a')
+            for i, element in enumerate(g_units):
+                try:
+                    temp = rows[i].find_all('td')[-2].string.split(r'/')
+                    units[element] = {'available': int(temp[0]), 'all': int(temp[1])}
+                except IndexError:
+                    units[element] = 'None'
+
                 units[ 'garage_time' ] = 0
 
             try:
@@ -309,15 +319,7 @@ class BotContainer(object):
                 units[ 'garage_time' ] += 0
 
 
-            # Soup von der ganzen Seite -> Alle Reihen finden -> zweitletzte Spalte finden
-            # diese Werte dort drin jeweils einer Einheit zuordnen.
-            rows = soup.find_all(class_='row_a')
-            for i, element in enumerate(g_units):
-                try:
-                    temp = rows[i].find_all('td')[-2].string.split(r'/')
-                    units[element] = {'available': int(temp[0]), 'all': int(temp[1])}
-                except IndexError:
-                    units[element] = 'None'
+
 
         barracks()
         stable()
