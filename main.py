@@ -11,8 +11,8 @@ import tools.toolbox
 def main(br):
     ai = Bot(br)
     ai.construct()
-    ai.trade()
     ai.recruit()
+    ai.trade()
     ai.close()
 
     print_cstring( '\nRank: ' + ai.var_game_settings[ 'player' ][ 'rank' ], 'blue' )

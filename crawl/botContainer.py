@@ -50,11 +50,6 @@ class BotContainer(object):
         self.next_building = str()
         self.parse_worldsettings()
 
-        # log in!
-  #      if not self.login():
-            # TODO handle login failures
-   #         exit()
-
         # Fetch all data from die-stämme (ressources, units usw...)
         self.refresh_all()
         self.get_next_building()
@@ -89,30 +84,6 @@ class BotContainer(object):
                         value = 'parsing failure'
                     self.worldsettings[unicode(keyword)] = value
 
-    def login(self):
-        """
-        Tries to login and tests if the login was successfull.
-
-        :return: Returns boolean Value.
-        """
-        print 'hi'
-
-        parameters = {'user': self.username,
-                      'password': self.password}
-
-        data = urllib.urlencode(parameters)
-
-        self.browser.open('http://www.die-staemme.de/index.php?action=login&server_%s' % self.world, data)
-        # TODO exception abfangen
-        #except mechanize._response.httperror_seek_wrapper:
-        #    print 'yuck'
-
-        if '<img class="p_main"' in self.browser.response().read():
-            toolbox.print_cstring('Logged in. Server: {serv}'.format(serv=self.world), 'green')
-            return 1
-        else:
-            toolbox.print_cstring('Failure. Login failed on Server: {serv}'.format(serv=self.world), 'red')
-            return 0
 
     def open(self, place, village=None):
         """

@@ -76,7 +76,6 @@ def is_logged_in(browser):
         print_cstring( 'Currently not logged in. Server: {serv}'.format( serv = world ), 'red' )
         return 0
 
-
 def login(browser):
     config = ConfigParser.ConfigParser()
     config.read( r'settings\settings.ini' )

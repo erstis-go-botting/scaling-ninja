@@ -70,7 +70,7 @@ class Bot(BotContainer):
             try:
                 self.browser.follow_link(self.browser.find_link(url_regex=
                 re.compile("upgrade_building.+id=%s" % building)))
-                print_cstring("Building: [%s]" % building, 'yellow')
+                print_cstring("Building: [%s]" % building, 'turq')
                 self.statistics['buildings_constructed'] += 1
             except LinkNotFoundError:
                 print_cstring( 'fuck that shit, not enough ressources to build [%s]' % building, 'red')
@@ -243,7 +243,6 @@ class Bot(BotContainer):
             offer_art = offer.keys()[0]
 
             buy, sell, count = req_art, offer_art, req_count
-            print 'I will request {req_count} {req_art} and I will offer {offer_art}'.format(**locals())
 
 
         # CASE 2: We have 2 requests and enough traders to satisfy our demands.
@@ -254,7 +253,6 @@ class Bot(BotContainer):
                 req_demand = requ[req_art]
 
                 buy, sell, count = req_art, offer_art, req_demand
-                print 'I will request {req_demand} {req_art} and I will offer {offer_art}'.format(**locals())
 
 
         # CASE 3: We have 2 offers and not enough traders to satisfy our demands.
@@ -267,7 +265,6 @@ class Bot(BotContainer):
             offer_count = offer_support if offer_support < curtrader else curtrader
 
             buy, sell, count = req_art, offer_art, offer_count
-            print 'I will request {offer_count} {req_art} and I will offer {offer_art}'.format(**locals())
 
 
         # Case 4: We have 2 offers and enough traders to satisfy our demands.
@@ -278,7 +275,6 @@ class Bot(BotContainer):
                 offer_support = offer[offer_art]
 
                 buy, sell, count = req_art, offer_art, offer_support
-                print 'I will request {offer_support} {req_art} and I will offer {offer_art}'.format(**locals())
 
         # Case 4: We have 1 offer and 1 request.
         elif len(offer) == 1 and len(requ) == 1:
@@ -287,7 +283,6 @@ class Bot(BotContainer):
 
             count = requ[req_art] if requ[req_art] < curtrader else curtrader
 
-            print 'I will request {count} {req_art} and I will offer {offer_art}'.format(**locals())
             buy, sell, count = req_art, offer_art, count
 
         else:
@@ -331,7 +326,7 @@ class Bot(BotContainer):
             try:
                 self.browser.form[ unit ] = str( quantity )
                 self.browser.submit( )
-                print "Training [" + str( quantity ) + "] " + unit + "s"
+                print_cstring("Training [" + str( quantity ) + "] " + unit + "s", 'turq')
                 self.statistics[ 'units_built' ][ unit ] += quantity
             except mechanize.ControlNotFoundError:
                 print "{unit} control not found".format(unit=unit)
