@@ -298,7 +298,7 @@ class Bot(BotContainer):
         #endregion
 
         do_trade(buy, sell, count, max_time=3)
-
+    
     def recruit(self):
         """
         A function to recruit units
