@@ -7,6 +7,7 @@ from mechanize._mechanize import LinkNotFoundError
 from tools.toolbox import print_cstring
 from crawl.botContainer import BotContainer
 import mechanize
+import ctypes
 
 # UNITTRAIN BARRACKS
 # url [h = actioncode]
@@ -37,6 +38,7 @@ class Bot(BotContainer):
     def __init__(self):
         BotContainer.__init__(self)
 
+        self.keep_awake()
 
         # is the storage very full?
         for element in ['stone', 'wood', 'iron']:
@@ -342,6 +344,23 @@ class Bot(BotContainer):
 
         if self.units['stable_time'] < 10*60 or self.storage_critical:
             make_units('light', 5)
+
+    @staticmethod
+    def keep_awake():
+        """
+        This function uses the SetThreadExecutionState function
+        to keep the computer awake.
+
+        Documentation can be found here:
+        http://msdn.microsoft.com/en-us/library/windows/desktop/aa373208%28v=vs.85%29.aspx
+        """
+
+        KERNEL32 = ctypes.windll.LoadLibrary( "Kernel32.dll" )
+        ES_SYSTEM_REQUIRED = 0x00000001
+        # from the MSDN:
+        # ES_SYSTEM_REQUIRED
+        # Forces the system to be in the working state by resetting the system idle timer.
+        KERNEL32.SetThreadExecutionState( ctypes.c_int( ES_SYSTEM_REQUIRED ) )
 
 
 
