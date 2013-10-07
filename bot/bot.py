@@ -112,8 +112,7 @@ class Bot(BotContainer):
             self.browser.submit( )
             self.statistics['trades_conducted'] += trader_count
 
-
-        self.open( 'market&mode=send' )
+        self.open('market&mode=send')
         html = self.browser.response( ).readlines( )
 
         #region get trader
@@ -311,7 +310,7 @@ class Bot(BotContainer):
             """
             barrack_units = ['spear', 'axe', 'sword', 'archer']
             stable_units = ['spy', 'light', 'heavy', 'marcher']
-            garage_units = ['ram','catapult']
+            garage_units = ['ram', 'catapult']
 
             if unit in barrack_units:
                 self.open("barracks")
@@ -325,25 +324,25 @@ class Bot(BotContainer):
             else:
                 print 'invalid unit: {unit}'.format(unit=unit)
 
-
             self.browser.select_form( nr = 0 )
             try:
                 self.browser.form[ unit ] = str( quantity )
-                self.browser.submit( )
+                self.browser.submit()
                 print_cstring("Training [" + str( quantity ) + "] " + unit + "s", 'turq')
-                self.statistics[ 'units_built' ][ unit ] += quantity
+                self.statistics['units_built'][ unit ] += quantity
             except mechanize.ControlNotFoundError:
                 print "{unit} control not found".format(unit=unit)
 
+        if self.buildings['under_construction']:
 
-        if self.units['barracks_time'] < 10*60 or self.storage_critical:
-            make_units('axe', 10)
+            if self.units['barracks_time'] < 10*60 or self.storage_critical:
+                make_units('axe', 10)
 
-        if self.units['stable_time'] < 10*60 or self.storage_critical:
-            make_units('light', 5)
+            if self.units['stable_time'] < 10*60 or self.storage_critical:
+                make_units('light', 5)
 
-        if self.units['garage_time'] < 10*60 or self.storage_critical:
-            make_units('catapult', 5)
+            if self.units['garage_time'] < 10*60 or self.storage_critical:
+                make_units('catapult', 5)
 
 
 

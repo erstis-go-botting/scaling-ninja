@@ -1,8 +1,6 @@
 # coding=utf-8
 __author__ = 'sudo'
 
-import urllib
-import mechanize
 import re
 
 from json import loads
@@ -11,6 +9,7 @@ from ConfigParser import ConfigParser
 from tools import toolbox
 
 import cPickle as pickle
+
 
 class BotContainer(object):
     """
@@ -30,15 +29,19 @@ class BotContainer(object):
         self.password = self.config.get('credentials', 'password')
 
         # initiate the browser.
+        # This is kinda ugly, but there is afaik no other way
+        # to keep the browser object alive other than storing it in
+        # the outer {while True} loop.
         self.browser = br
 
         # Initialize the statistics object
         try:
-            self.statistics = pickle.load(open('storage/pkl_file', 'rb'))
+            self.statistics = pickle.load(open('juicy_stats', 'rb'))
         except IOError:
             # If there are no statistics as of right now we are gonna create them.
             self.statistics = {'units_built': {'axe': 0, 'sword': 0, 'archer': 0, 'spear': 0, 'light': 0,'heavy': 0,
-            'marcher': 0, 'spy': 0, 'ram': 0, 'catapult': 0}, 'buildings_constructed': 0, 'trades_conducted': 0}
+                                               'marcher': 0, 'spy': 0, 'ram': 0, 'catapult': 0},
+                               'buildings_constructed': 0, 'trades_conducted': 0}
 
         # dummy initialize the attributes
         self.ressources = dict()
@@ -173,6 +176,39 @@ class BotContainer(object):
 
         units = dict()
 
+        def parse_units(give_me_soup, unit_list ):
+            rows = give_me_soup.find_all(class_='row_a')
+            for i, element in enumerate( unit_list ):
+                try:
+                    temp = rows[ i ].find_all( 'td' )[ -2 ].string.split( r'/' )
+                    units[ element ] = { 'available': int( temp[ 0 ] ), 'all': int( temp[ 1 ] ) }
+                except IndexError:
+                    units[ element ] = { 'available': 0, 'all': 0 }
+
+            try:
+                # Gets units which are beeing built atm and the queue time.
+                current_queue = give_me_soup.find( 'div', class_ = 'trainqueue_wrap' ).find_all( 'tr' )
+                if len( current_queue ) == 2:
+                    current_queue = [ current_queue[ 1 ] ]
+                else:
+                    current_queue = current_queue[ 1:-1 ]
+
+                for element in current_queue:
+                    art = re.findall( r'smaller (.+)">', str( element.div ) )[ 0 ]
+                    count = element.td.contents[ -1 ].strip( ).split( )[ 0 ]
+
+                    try:
+                        timelist = map( int, element.span.string.split( ':' ) )
+                    except AttributeError:
+                        timelist = map( int, re.findall( r'\d+', str( element ) )[ 2:5 ] )
+                    time = 60 * 60 * timelist[ 0 ] + 60 * timelist[ 1 ] + timelist[ 2 ]
+
+                    units[ art ][ 'available' ] += int( count )
+                    units[ 'barracks_time' ] += int( time )
+
+            except AttributeError:
+                units[ 'barracks_time' ] += 0
+
         def barracks():
             """
             Fetches all barracks units
@@ -189,37 +225,7 @@ class BotContainer(object):
             # Soup von der ganzen Seite -> Alle Reihen finden -> zweitletzte Spalte finden
             # diese Werte dort drin jeweils einer Einheit zuordnen.
             units['barracks_time'] = 0
-
-            rows = soup.find_all(class_='row_a')
-            for i, element in enumerate(b_units):
-                try:
-                    temp = rows[i].find_all('td')[-2].string.split(r'/')
-                    units[element] = {'available': int(temp[0]), 'all': int(temp[1])}
-                except IndexError:
-                    units[element] = {'available': 0, 'all': 0}
-
-            try:
-                # Gets units which are beeing built atm and the queue time.
-                current_queue = soup.find('div', class_='trainqueue_wrap').find_all('tr')
-                if len(current_queue) == 2:
-                    current_queue = [current_queue[1]]
-                else: current_queue = current_queue[1:-1]
-
-                for element in current_queue:
-                    art = re.findall(r'smaller (.+)">', str(element.div))[0]
-                    count = element.td.contents[-1].strip().split()[0]
-
-                    try:
-                        timelist = map(int, element.span.string.split(':'))
-                    except AttributeError:
-                        timelist = map(int, re.findall( r'\d+', str( element ) )[2:5])
-                    time = 60*60*timelist[0] + 60*timelist[1] + timelist[2]
-
-                    units[art]['available'] += int(count)
-                    units['barracks_time'] += int(time)
-
-            except AttributeError:
-                units['barracks_time'] += 0
+            parse_units(soup, b_units)
 
         def stable():
             """
@@ -245,29 +251,7 @@ class BotContainer(object):
                     units[element] = 'None'
 
             units[ 'stable_time' ] = 0
-            try:
-                # Gets units which are beeing built atm and the queue time.
-                current_queue = soup.find( 'div', class_ = 'trainqueue_wrap' ).find_all( 'tr' )
-                if len( current_queue ) == 2:
-                    current_queue = [ current_queue[ 1 ] ]
-                else:
-                    current_queue = current_queue[ 1:-1 ]
-
-                for element in current_queue:
-                    art = re.findall( r'smaller (.+)">', str( element.div ) )[ 0 ]
-                    count = element.td.contents[ -1 ].strip( ).split( )[ 0 ]
-
-                    try:
-                        timelist = map( int, element.span.string.split( ':' ) )
-                    except AttributeError:
-                        timelist = map( int, re.findall( r'\d+', str( element ) )[ 2:5 ] )
-                    time = 60 * 60 * timelist[ 0 ] + 60 * timelist[ 1 ] + timelist[ 2 ]
-
-                    units[ art ][ 'available' ] += int( count )
-                    units[ 'stable_time' ] += int( time )
-
-            except AttributeError:
-                units[ 'stable_time' ] += 0
+            parse_units(soup, s_units)
 
         def garage():
             """
@@ -292,34 +276,8 @@ class BotContainer(object):
                 except IndexError:
                     units[element] = 'None'
 
-                units[ 'garage_time' ] = 0
-
-            try:
-                # Gets units which are beeing built atm and the queue time.
-                current_queue = soup.find( 'div', class_ = 'trainqueue_wrap' ).find_all( 'tr' )
-                if len( current_queue ) == 2:
-                    current_queue = [ current_queue[ 1 ] ]
-                else:
-                    current_queue = current_queue[ 1:-1 ]
-
-                for element in current_queue:
-                    art = re.findall( r'smaller (.+)">', str( element.div ) )[ 0 ]
-                    count = element.td.contents[ -1 ].strip( ).split( )[ 0 ]
-
-                    try:
-                        timelist = map( int, element.span.string.split( ':' ) )
-                    except AttributeError:
-                        timelist = map( int, re.findall( r'\d+', str( element ) )[ 2:5 ] )
-                    time = 60 * 60 * timelist[ 0 ] + 60 * timelist[ 1 ] + timelist[ 2 ]
-
-                    units[ art ][ 'available' ] += int( count )
-                    units[ 'garage_time' ] += int( time )
-
-            except AttributeError:
-                units[ 'garage_time' ] += 0
-
-
-
+            units[ 'garage_time' ] = 0
+            parse_units(soup, garage_units)
 
         barracks()
         stable()
@@ -391,4 +349,4 @@ class BotContainer(object):
 
     def close(self):
         # save our statistics
-        pickle.dump(self.statistics, open('storage/pkl_file', 'wb'))
+        pickle.dump(self.statistics, open('juicy_stats', 'wb'))
