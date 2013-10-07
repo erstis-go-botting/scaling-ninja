@@ -15,6 +15,8 @@ def main(br):
     ai.trade()
     ai.close()
 
+    print ai.buildings
+
     print_cstring( '\nRank: ' + ai.var_game_settings[ 'player' ][ 'rank' ], 'blue' )
 
     igm = int(ai.var_game_settings['player']['new_igm'])

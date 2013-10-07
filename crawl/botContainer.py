@@ -176,7 +176,8 @@ class BotContainer(object):
 
         units = dict()
 
-        def parse_units(give_me_soup, unit_list ):
+        def parse_units(give_me_soup, unit_list, building ):
+
             rows = give_me_soup.find_all(class_='row_a')
             for i, element in enumerate( unit_list ):
                 try:
@@ -204,10 +205,11 @@ class BotContainer(object):
                     time = 60 * 60 * timelist[ 0 ] + 60 * timelist[ 1 ] + timelist[ 2 ]
 
                     units[ art ][ 'available' ] += int( count )
-                    units[ 'barracks_time' ] += int( time )
+                    units[ '{b}_time'.format(b=building) ] += int( time )
+
 
             except AttributeError:
-                units[ 'barracks_time' ] += 0
+                units[ '{b}_time'.format(b=building) ] += 0
 
         def barracks():
             """
@@ -225,7 +227,7 @@ class BotContainer(object):
             # Soup von der ganzen Seite -> Alle Reihen finden -> zweitletzte Spalte finden
             # diese Werte dort drin jeweils einer Einheit zuordnen.
             units['barracks_time'] = 0
-            parse_units(soup, b_units)
+            parse_units(soup, b_units, 'barracks')
 
         def stable():
             """
@@ -251,7 +253,7 @@ class BotContainer(object):
                     units[element] = 'None'
 
             units[ 'stable_time' ] = 0
-            parse_units(soup, s_units)
+            parse_units(soup, s_units, 'stable')
 
         def garage():
             """
@@ -277,7 +279,7 @@ class BotContainer(object):
                     units[element] = 'None'
 
             units[ 'garage_time' ] = 0
-            parse_units(soup, garage_units)
+            parse_units(soup, garage_units, 'garage')
 
         barracks()
         stable()
