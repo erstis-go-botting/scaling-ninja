@@ -291,6 +291,8 @@ class Bot(BotContainer):
 
         do_trade(buy, sell, count, max_time=3)
 
+        print_cstring('Buying {buy} for {sell} {count} times.'.format(buy=buy, sell = sell, count = count),'turq')
+
     def recruit(self):
         """
         A function to recruit units
@@ -344,7 +346,20 @@ class Bot(BotContainer):
             if self.units['garage_time'] < 10*60 or self.storage_critical:
                 make_units('catapult', 5)
 
+    #def igm_reader(self):
+        #self.open('mail')
+        #soup_source_mail = BeautifulSoup(self.browser.response().read())
+        #table = soup_source_mail.find_all('table', class_='vis')[2]
+        #igm_all = table.find_all("td", colspan = "2")
+        #for i in range(len(img_all)):
+        #    if 'new_mail.png' in img_all[i].find('img')['src'] == 1:
+        #        img_neu_url = img_all[i].find('a')['href']
+        #        self.bot.browser.open('http://{world}.die-staemme.de{mail_url'.format(world = 'world', mail_url= 'img_neu_url'))
 
+
+        #if get_igm:
+        #    print 'igm gelesen'
+            #print_cstring('New Message read. Title: ')
 
 
 

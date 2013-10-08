@@ -100,3 +100,5 @@ def login(browser):
     else:
         print_cstring( 'Failure. Login failed on Server: {serv}'.format( serv = world ), 'red' )
         return 0
+
+

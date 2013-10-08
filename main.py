@@ -15,7 +15,6 @@ def main(br):
     ai.trade()
     ai.close()
 
-    print ai.buildings
 
     print_cstring( '\nRank: ' + ai.var_game_settings[ 'player' ][ 'rank' ], 'blue' )
 
@@ -23,6 +22,9 @@ def main(br):
     modifier = 's' if igm > 1 else ''
     if igm:
         print_cstring('You got {igm} new ingame message{modifier}!'.format(**locals()), 'red')
+
+
+    #ai.igm_reader()
 
     print '\nStatistics:'
     pprint(ai.statistics)
