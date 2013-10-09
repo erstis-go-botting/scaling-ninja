@@ -337,29 +337,41 @@ class Bot(BotContainer):
 
         if self.buildings['under_construction']:
 
-            if self.units['barracks_time'] < 10*60 or self.storage_critical:
-                make_units('axe', 10)
+            try:
+                if self.units['barracks_time'] < 10*60 or self.storage_critical:
+                    make_units('axe', 10)
 
-            if self.units['stable_time'] < 10*60 or self.storage_critical:
-                make_units('light', 5)
+                if self.units['stable_time'] < 10*60 or self.storage_critical:
+                    make_units('light', 5)
 
-            if self.units['garage_time'] < 10*60 or self.storage_critical:
-                make_units('catapult', 5)
-
-    #def igm_reader(self):
-        #self.open('mail')
-        #soup_source_mail = BeautifulSoup(self.browser.response().read())
-        #table = soup_source_mail.find_all('table', class_='vis')[2]
-        #igm_all = table.find_all("td", colspan = "2")
-        #for i in range(len(img_all)):
-        #    if 'new_mail.png' in img_all[i].find('img')['src'] == 1:
-        #        img_neu_url = img_all[i].find('a')['href']
-        #        self.bot.browser.open('http://{world}.die-staemme.de{mail_url'.format(world = 'world', mail_url= 'img_neu_url'))
-
-
-        #if get_igm:
-        #    print 'igm gelesen'
-            #print_cstring('New Message read. Title: ')
+                if self.units['garage_time'] < 10*60 or self.storage_critical:
+                    make_units('catapult', 5)
+            except BaseException:
+                print '404 barrack, stable or garage not found'
+    def igm_reader(self):
+        self.open('mail')
+        soup_source_mail = BeautifulSoup(self.browser.response().read())
+        table = soup_source_mail.find_all('table', class_='vis')[2]
+        igm_all = table.find_all("td", colspan = "2")
+        img_neu_url = 0
+        for i in range(len(table.find_all("td", colspan = "2"))):
+            if 'new_mail.png' in img_all[i].find('img')['src'] == 1:
+                img_neu_url = img_all[i].find('a')['href'].string
+                self.bot.browser.open('http://{world}.die-staemme.de{mail_url'.format(world = 'world', mail_url= 'img_neu_url'))
+                soup_source_new_mail = BeautifulSoup(self.browser.response().read())
+                soup_betreff = soup_source_new_mail.find_all('th')
+                betreff = soup_betreff[1].string
+                for element in soup_source_new_mail.find_all('a'):
+                    if element.get('href'):
+                        if 'info_player' in element.get('href'):
+                            #author = element.string
+                            print element.string
+                            break
+        if img_neu_url:
+            print 'igm gelesen'
+            print_cstring('New Message read. Title: {betreff}'.format(betreff = 'betreff'))
+        else:
+            print_cstring('Keine neuen Nachrichten.', 'turq')
 
 
 

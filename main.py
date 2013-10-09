@@ -24,7 +24,7 @@ def main(br):
         print_cstring('You got {igm} new ingame message{modifier}!'.format(**locals()), 'red')
 
 
-    #ai.igm_reader()
+    ai.igm_reader()
 
     print '\nStatistics:'
     pprint(ai.statistics)
