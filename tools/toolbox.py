@@ -6,10 +6,7 @@ import time
 import mechanize
 import urllib
 import ConfigParser
-import win32event
-import win32api
-import winerror
-
+import os
 
 def print_cstring(string, color='blue'):
     """
@@ -73,10 +70,10 @@ def is_logged_in(browser):
     #    print 'yuck'
 
     if '<img class="p_main"' in browser.response( ).read( ):
-        print_cstring( 'Already logged in. Server: {serv}'.format( serv = world ), 'green' )
+        print_cstring( 'Already logged in.', 'green' )
         return 1
     else:
-        print_cstring( 'Currently not logged in. Server: {serv}'.format( serv = world ), 'red' )
+        print_cstring( 'Currently not logged in.', 'red' )
         return 0
 
 def login(browser):
@@ -98,10 +95,28 @@ def login(browser):
     browser.open( 'http://www.die-staemme.de/index.php?action=login&server_%s' % world, data )
 
     if '<img class="p_main"' in browser.response( ).read( ):
-        print_cstring( 'Logged in. Server: {serv}'.format( serv = world ), 'green' )
+        print_cstring( 'Logged in.'.format( serv = world ), 'green' )
         return 1
     else:
         print_cstring( 'Failure. Login failed on Server: {serv}'.format( serv = world ), 'red' )
         return 0
 
+def print_startup_information():
+    """
+    Just some startup information
+    """
+    config = ConfigParser.ConfigParser( )
+    config.read( r'settings\settings.ini' )
 
+    print_cstring(time.asctime(), 'magenta')
+    print ''
+    print_cstring('#'*35)
+    print_cstring('# {string:<20} {u:>10} #'.format(string = 'Username: ', u=os.environ['USERNAME']))
+    print_cstring('# {string:<20} {c:>10} #'.format(string = 'Computername:', c=os.environ['COMPUTERNAME']))
+    print_cstring('# {string:<20} {os:>10} #'.format(string = 'Operatingsystem:', os=os.environ['OS']))
+    print_cstring( '#'+ ' '*33+'#' )
+    print_cstring( '# {string:<20} {a:>10} #'.format( string = 'Alias: ', a = config.get( 'credentials', 'Username' ) ) )
+    print_cstring('# {string:<20} {s:>10} #'.format( string = 'Server: ', s = config.get('credentials', 'world') ) )
+    print_cstring( '# {string:<20} {s:>10} #'.format( string = 'Delay (in s): ', s = config.get( 'control', 'sleep' ) ) )
+    print_cstring('#'*35)
+    print ''

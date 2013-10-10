@@ -6,8 +6,9 @@ from bs4 import BeautifulSoup
 from mechanize._mechanize import LinkNotFoundError
 from tools.toolbox import print_cstring
 from crawl.botContainer import BotContainer
+from crawl.dataminer import FarmTargetHandler
 import mechanize
-import ctypes
+from collections import OrderedDict
 
 # UNITTRAIN BARRACKS
 # url [h = actioncode]
@@ -335,9 +336,21 @@ class Bot(BotContainer):
                 self.browser.form[ unit ] = str( quantity )
                 self.browser.submit()
                 print_cstring("Training [" + str( quantity ) + "] " + unit + "s", 'turq')
-                self.statistics['units_built'][ unit ] += quantity
+                self.statistics['units_built'][ unit ] += int(quantity)
             except mechanize.ControlNotFoundError:
                 print "{unit} control not found".format(unit=unit)
+
+        def unit_quest():
+            """
+            Just a function for the various quests.
+            Supports atm just buildings spears
+            """
+            if self.units['spear']['all'] < 20:
+                if 'id="quest_8"' in self.browser.response().read():
+                    print 'You are on Quest 8!!!'
+                    make_units('spear', '2')
+
+        unit_quest()
 
         if self.buildings['under_construction']:
 
@@ -374,7 +387,7 @@ class Bot(BotContainer):
         #    print 'igm gelesen'
             #print_cstring('New Message read. Title: ')
 
-    def slow_farm(self, target, units):
+    def slow_attack(self, target, units):
         """
         Usage:
         :param target: Expects a village dictionary, like those from FarmTargetHandler.raw_map
@@ -413,6 +426,105 @@ class Bot(BotContainer):
         self.browser.submit( )
         self.browser.select_form( nr = 0 )
         self.browser.submit( )
+
+    def farm(self):
+        """
+        juicy!
+        farms! is imba! doesn't make mistakes!
+        makes the bot superior to humans!
+        #ai = Bot(browser)
+        #fth = FarmTargetHandler(ai)
+        #od = fth.raw_map
+        #nod = [objekt for objekt in od.items() if objekt[1]['points'] < 100 and objekt[1]['barb']]
+        #ai.slow_attack(nod[2][1], {'light': 10})
+        """
+        #ai = Bot(browser)
+        #fth = FarmTargetHandler(ai)
+        #od = fth.raw_map
+        #nod = [objekt for objekt in od.items() if objekt[1]['points'] < 100 and objekt[1]['barb']]
+        #ai.slow_attack(nod[2][1], {'light': 10})
+
+        def can_farm():
+            """
+            if we don't have units capable for farming,
+            we can close the farming function immediately.
+            Units capable of farming: sword/axe/light
+            Not implemented: paladin. because fuck you. that's why.
+            """
+            if (self.units['axe']['available'] +
+                self.units['sword']['available'] +
+                self.units['light']['available']) <= 5:
+                return 0
+            else:
+                return 1
+
+        def is_noob():
+            """
+            if we only have 20 or less
+            units qualified for farming,
+            this function returns 1,
+            else 0.
+            """
+            if self.units['axe']['available'] + self.units['light']['available'] <= 20:
+                if self.units['axe']['all'] + self.units['light']['all'] <= 20:
+                    return 1
+            else:
+                return 0
+
+        def dummy_farm():
+            """
+            A very simple farming function.
+            Only attacks with spear/axe/sword.
+            Only sends one group / target,
+            attacks only targets up to distance.
+            """
+
+            # DECLARATIONS --------------------------------------------------------------------- #
+            # units...
+            spear = self.units['spear']['available']
+            axe = self.units['axe']['available']
+            sword = self.units['sword']['available']
+
+            # Get a map & only attack villages with less than 75 points & distance less than 10.
+            fth = FarmTargetHandler( self )
+            atlas = fth.filtered_map
+            atlas = OrderedDict([ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75 and
+                                                                         objekt[ 1 ][ 'distance' ] < 10])
+            victim_gen = iter(atlas.values)
+            # farmgroups...
+            groups = int(axe / 2) + int(sword / 3)
+            if groups > len(atlas):
+                groups = len(atlas)
+            if not groups:
+                return 0
+
+            spear_per_group = spear / groups
+            # END OF DECLARATIONS -------------------------------------------------------------- #
+
+            for i in range(groups):
+                if axe >= 2:
+                    axe -= 2
+                    self.slow_attack(target=victim_gen.next(), units={'axe': 2, 'spear': spear_per_group})
+
+                elif sword >= 3:
+                    sword -= 3
+                    self.slow_attack(target = victim_gen.next(), units = {'sword': 3, 'spear': spear_per_group})
+
+                else:
+                    print 'strange result in dummy_farm function. better doublecheck this.'
+
+            print 'End of farming.\n'
+
+
+        if not can_farm():
+            return 0
+
+        if is_noob():
+            dummy_farm()
+            return 0
+
+
+
 
 
 

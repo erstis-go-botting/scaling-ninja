@@ -20,11 +20,9 @@ class FarmTargetHandler(object):
 
         self.bot = bot
         self.raw_map = self.analyze_map()
+        self.filtered_map = self.remove_noobprot(self.raw_map)
 
-    @staticmethod
-    def distance( home, target ):
-        value = (int(home[ 'x' ]) - int(target[ 'x' ])) ** 2 + (int(home[ 'y' ]) - int(target[ 'y' ])) ** 2
-        return sqrt( value )
+
 
     def analyze_map(self):
 
@@ -108,6 +106,9 @@ class FarmTargetHandler(object):
                     else:
                         player_points = player_points.replace( '.', '' )
                         distance = self.distance(own_coordinates, {'x': village_x, 'y': village_y})
+                        # Don't include self :P
+                        if distance == 0.0:
+                            continue
 
                         raw_map[village_id] = {'x': village_x, 'y': village_y, 'player_id': player_id,
                                                'points': int( player_points.replace('.', '') ), 'noobprot': noobprot,
@@ -115,3 +116,16 @@ class FarmTargetHandler(object):
 
         # sort for distance, bitchez!
         return OrderedDict( sorted( raw_map.items( ), key = lambda t: t[ 1 ][ 'distance' ] ) )
+
+    @staticmethod
+    def remove_noobprot(old_map):
+        """
+        Just removes protected elements
+        """
+        new_map = [ objekt for objekt in old_map.items( ) if objekt[ 1 ][ 'noobprot' ] == 0 ]
+        return new_map
+
+    @staticmethod
+    def distance( home, target ):
+        value = (int(home[ 'x' ]) - int(target[ 'x' ])) ** 2 + (int(home[ 'y' ]) - int(target[ 'y' ])) ** 2
+        return sqrt( value )
