@@ -327,6 +327,7 @@ class Bot(BotContainer):
             else:
                 print 'invalid unit: {unit}'.format(unit=unit)
 
+            self.browser.select_form( nr = 0 )
             try:
                 self.browser.select_form( nr = 0 )
             except mechanize.FormNotFoundError:
@@ -525,6 +526,30 @@ class Bot(BotContainer):
 
 
 
+    def igm_reader(self):
+        self.open('mail')
+        soup_source_mail = BeautifulSoup(self.browser.response().read())
+        table = soup_source_mail.find_all('table', class_='vis')[2]
+        igm_all = table.find_all("td", colspan = "2")
+        img_neu_url = 0
+        for i in range(len(table.find_all("td", colspan = "2"))):
+            if 'new_mail.png' in img_all[i].find('img')['src'] == 1:
+                img_neu_url = img_all[i].find('a')['href'].string
+                self.bot.browser.open('http://{world}.die-staemme.de{mail_url'.format(world = 'world', mail_url= 'img_neu_url'))
+                soup_source_new_mail = BeautifulSoup(self.browser.response().read())
+                soup_betreff = soup_source_new_mail.find_all('th')
+                betreff = soup_betreff[1].string
+                for element in soup_source_new_mail.find_all('a'):
+                    if element.get('href'):
+                        if 'info_player' in element.get('href'):
+                            #author = element.string
+                            print element.string
+                            break
+        if img_neu_url:
+            print 'igm gelesen'
+            print_cstring('New Message read. Title: {betreff}'.format(betreff = 'betreff'))
+        else:
+            print_cstring('Keine neuen Nachrichten.', 'turq')
 
 
 

@@ -28,20 +28,15 @@ def main(br):
     if igm:
         print_cstring('You got new ingame messages!'.format(**locals()), 'magenta')
 
+
+    soul.igm_reader()
+
     print '\nStatistics:'
     pprint(soul.statistics)
     print_cstring('#'*100+'\n', 'yellow')
 
 
 browser = tools.toolbox.make_browser()
-
-#ai = Bot(browser)
-#fth = FarmTargetHandler(ai)
-#od = fth.raw_map
-#nod = [objekt for objekt in od.items() if objekt[1]['points'] < 100 and objekt[1]['barb']]
-#ai.slow_attack(nod[2][1], {'light': 10})
-
-
 while 1:
     thread.start_new_thread( main, (browser,) )
 
