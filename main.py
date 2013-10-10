@@ -29,7 +29,8 @@ def main(br):
         print_cstring('You got new ingame messages!'.format(**locals()), 'magenta')
 
 
-    soul.igm_reader()
+    #soul.igm_reader()
+    # buggy atm
 
     print '\nStatistics:'
     pprint(soul.statistics)
