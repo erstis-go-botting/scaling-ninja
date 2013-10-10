@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from ConfigParser import ConfigParser
 from tools import toolbox
 
+
 import cPickle as pickle
 
 
@@ -20,6 +21,11 @@ class BotContainer(object):
         Sets up basic attributes, which we will heavily rely on.
         All settings are loaded from settings\settings.ini
         """
+
+        if not toolbox.is_logged_in( br ):
+            toolbox.login( br )
+
+
         self.config = ConfigParser()
         self.config.read(r'settings\settings.ini')
 
@@ -221,8 +227,7 @@ class BotContainer(object):
 
             if 'nicht vorhanden' in str(soup):
                 for element in b_units:
-                    units[element] = 'None'
-                    return
+                    units[element] = {'available': 0, 'all': 0}
 
             # Soup von der ganzen Seite -> Alle Reihen finden -> zweitletzte Spalte finden
             # diese Werte dort drin jeweils einer Einheit zuordnen.
@@ -239,8 +244,7 @@ class BotContainer(object):
 
             if 'nicht vorhanden' in str(soup):
                 for element in s_units:
-                    units[element] = 'None'
-                return
+                    units[element] = {'available': 0, 'all': 0}
 
             # Soup von der ganzen Seite -> Alle Reihen finden -> zweitletzte Spalte finden
             # diese Werte dort drin jeweils einer Einheit zuordnen.
@@ -252,7 +256,7 @@ class BotContainer(object):
                 except IndexError:
                     units[element] = 'None'
 
-            units[ 'stable_time' ] = 0
+            units['stable_time'] = 0
             parse_units(soup, s_units, 'stable')
 
         def garage():
@@ -278,12 +282,13 @@ class BotContainer(object):
                 except IndexError:
                     units[element] = 'None'
 
-            units[ 'garage_time' ] = 0
+            units['garage_time'] = 0
             parse_units(soup, garage_units, 'garage')
 
         barracks()
         stable()
         garage()
+
         self.units = units
 
     def get_buildings(self):

@@ -326,7 +326,11 @@ class Bot(BotContainer):
             else:
                 print 'invalid unit: {unit}'.format(unit=unit)
 
-            self.browser.select_form( nr = 0 )
+            try:
+                self.browser.select_form( nr = 0 )
+            except mechanize.FormNotFoundError:
+                print "{unit} control not found".format(unit=unit)
+                return
             try:
                 self.browser.form[ unit ] = str( quantity )
                 self.browser.submit()
@@ -337,14 +341,23 @@ class Bot(BotContainer):
 
         if self.buildings['under_construction']:
 
-            if self.units['barracks_time'] < 10*60 or self.storage_critical:
-                make_units('axe', 10)
+            try:
+                if self.units['barracks_time'] < 10*60 or self.storage_critical:
+                    make_units('axe', 10)
+            except KeyError as error:
+                print "KeyError: {0}".format(error)
 
-            if self.units['stable_time'] < 10*60 or self.storage_critical:
-                make_units('light', 5)
+            try:
+                if self.units['stable_time'] < 10*60 or self.storage_critical:
+                    make_units('light', 5)
+            except KeyError as error:
+                print "KeyError: {0}".format(error)
 
-            if self.units['garage_time'] < 10*60 or self.storage_critical:
-                make_units('catapult', 5)
+            try:
+                if self.units['garage_time'] < 10*60 or self.storage_critical:
+                    make_units('catapult', 5)
+            except KeyError as error:
+                print "KeyError: {0}".format(error)
 
     #def igm_reader(self):
         #self.open('mail')
@@ -360,6 +373,46 @@ class Bot(BotContainer):
         #if get_igm:
         #    print 'igm gelesen'
             #print_cstring('New Message read. Title: ')
+
+    def slow_farm(self, target, units):
+        """
+        Usage:
+        :param target: Expects a village dictionary, like those from FarmTargetHandler.raw_map
+        :param units: Expects a dictionary with units in it like {'axe': 10, 'spear': 100}
+        """
+
+        # prevent errors from accessing keys, that do not exist yet
+        unitlist = ['spear', 'axe', 'sword', 'spy', 'light', 'ram', 'catapult', 'knight', 'heavy']
+        not_defined_units = [u for u in unitlist if u not in units.keys()]
+        for u in not_defined_units:
+            units[u] = 0
+
+
+        self.open('place')
+        print "Attacking [{target[x]}|{target[y]}] ({target[points]} points) with payload:\n{units}".format(**locals())
+
+        self.browser.select_form( nr = 0 )
+        self.browser.form[ "x" ] = str( target['x'] ) ##Koordinaten des anzugreiffenden Dorfes...
+        self.browser.form[ "y" ] = str( target['y'] )
+        self.browser.form[ "spear" ] = str( units['spear'] )
+        self.browser.form[ "axe" ] = str( units['axe'] )
+        self.browser.form[ "sword" ] = str( units['sword'] )
+        self.browser.form[ "spy" ] = str( units['spy'] )
+        self.browser.form[ "light" ] = str( units['light'] )
+        self.browser.form[ "ram" ] = str( units['ram'] )
+        self.browser.form[ "catapult" ] = str( units['catapult'] )
+        self.browser.form[ "heavy" ] = str( units['heavy'] )
+
+        try:
+            self.browser.form[ "knight" ] = str( units['knight'] )
+        except mechanize.ControlNotFoundError:
+            pass
+            # On some worlds there are no knights!!!
+
+
+        self.browser.submit( )
+        self.browser.select_form( nr = 0 )
+        self.browser.submit( )
 
 
 

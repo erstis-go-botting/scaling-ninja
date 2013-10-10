@@ -6,6 +6,9 @@ import time
 import mechanize
 import urllib
 import ConfigParser
+import win32event
+import win32api
+import winerror
 
 
 def print_cstring(string, color='blue'):
@@ -37,14 +40,14 @@ def wait_dont_sleep(seconds):
     Documentation can be found here:
     http://msdn.microsoft.com/en-us/library/windows/desktop/aa373208%28v=vs.85%29.aspx
     """
-    for i in range(seconds/30):
+    for i in range(seconds/3):
         KERNEL32 = ctypes.windll.LoadLibrary( "Kernel32.dll" )
         ES_SYSTEM_REQUIRED = 0x00000001
         # from the MSDN:
         # ES_SYSTEM_REQUIRED
         # Forces the system to be in the working state by resetting the system idle timer.
         KERNEL32.SetThreadExecutionState( ctypes.c_int( ES_SYSTEM_REQUIRED ) )
-        time.sleep(30)
+        time.sleep(3)
 
 
 def make_browser():

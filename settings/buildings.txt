@@ -66,11 +66,11 @@ main 20
 smith 10
 garage 1
 
-
 stone 25
 wood 25
 iron 25
 smith 20
+snob 1
 stone 27
 wood 27
 iron 27

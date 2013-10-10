@@ -4,6 +4,9 @@ __author__ = 'sudo'
 from bs4 import BeautifulSoup
 from json import loads
 import re
+from math import sqrt
+from collections import OrderedDict
+
 
 
 class FarmTargetHandler(object):
@@ -16,7 +19,12 @@ class FarmTargetHandler(object):
         """
 
         self.bot = bot
-        self.raw_map = self.analyze_map
+        self.raw_map = self.analyze_map()
+
+    @staticmethod
+    def distance( home, target ):
+        value = (int(home[ 'x' ]) - int(target[ 'x' ])) ** 2 + (int(home[ 'y' ]) - int(target[ 'y' ])) ** 2
+        return sqrt( value )
 
     def analyze_map(self):
 
@@ -27,6 +35,8 @@ class FarmTargetHandler(object):
         """
 
         x, y = self.bot.var_game_settings['village']['coord'].split('|')
+        own_coordinates = {'x': x, 'y': y}
+
         goto = 'http://{self.bot.world}.die-staemme.de/game.php?x={x}&y={y}&screen=map#{x};{y}'.format(**locals())
         self.bot.browser.open(goto)
         htmllines = self.bot.browser.response().readlines()
@@ -42,7 +52,7 @@ class FarmTargetHandler(object):
             raise
 
         prefech = loads(prefech.split(' = ', 1)[1][:-2])
-        raw_map = dict()
+        raw_map = OrderedDict()
 
         for superlist in prefech:
             base_x, base_y = superlist['data']['x'], superlist['data']['y']
@@ -96,7 +106,12 @@ class FarmTargetHandler(object):
                         # of DS. doesn't harm though, so we are just ignoring it.
                         pass
                     else:
-                        raw_map[village_id] = {'x': village_x, 'y': village_y, 'player_id': player_id,
-                                               'points': int(player_points), 'noobprot': noobprot, 'barb': barbarian}
+                        player_points = player_points.replace( '.', '' )
+                        distance = self.distance(own_coordinates, {'x': village_x, 'y': village_y})
 
-        return raw_map
+                        raw_map[village_id] = {'x': village_x, 'y': village_y, 'player_id': player_id,
+                                               'points': int( player_points.replace('.', '') ), 'noobprot': noobprot,
+                                               'barb': barbarian, 'distance': distance}
+
+        # sort for distance, bitchez!
+        return OrderedDict( sorted( raw_map.items( ), key = lambda t: t[ 1 ][ 'distance' ] ) )
