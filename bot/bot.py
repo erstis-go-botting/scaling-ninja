@@ -537,32 +537,46 @@ class Bot(BotContainer):
             return 0
         
         elif has_no_lights():
+            pass
 
 
     def igm_reader(self):
+        """
+        A function to read ingame mails...
+        """
+
+        # linklist is a list of urls we need to visit!
+        linklist = []
         self.open('mail')
         soup_source_mail = BeautifulSoup(self.browser.response().read())
-        table = soup_source_mail.find_all('table', class_='vis')[2]
+
+        table = soup_source_mail.find_all('table', class_='vis')[1]
         igm_all = table.find_all("td", colspan = "2")
-        img_neu_url = 0
-        for i in range(len(table.find_all("td", colspan = "2"))):
-            if 'new_mail.png' in img_all[i].find('img')['src'] == 1:
-                img_neu_url = img_all[i].find('a')['href'].string
-                self.bot.browser.open('http://{world}.die-staemme.de{mail_url'.format(world = 'world', mail_url= 'img_neu_url'))
-                soup_source_new_mail = BeautifulSoup(self.browser.response().read())
-                soup_betreff = soup_source_new_mail.find_all('th')
-                betreff = soup_betreff[1].string
-                for element in soup_source_new_mail.find_all('a'):
-                    if element.get('href'):
-                        if 'info_player' in element.get('href'):
-                            #author = element.string
-                            print element.string
-                            break
-        if img_neu_url:
-            print 'igm gelesen'
-            print_cstring('New Message read. Title: {betreff}'.format(betreff = 'betreff'))
-        else:
-            print_cstring('Keine neuen Nachrichten.', 'turq')
+
+        for link in igm_all:
+            if 'new_mail.png' in link.find('img')['src']:
+                mail_url = link.find('a')['href']
+                url = 'http://{world}.die-staemme.de{url}'.format(world=self.world, url = mail_url)
+                linklist.append(url)
+
+        for link in linklist:
+            # we are now in a message we got...
+            self.browser.open(link)
+            soup = BeautifulSoup(self.browser.response().read())
+            betreff = soup.find_all('th')[1].string
+
+            # get author
+            author = 'Author not found'
+            reg = re.compile(r'.*screen=info_player')
+            for element in soup.find_all('a', href=reg):
+                author = element.string
+                break
+
+            print_cstring('New Message read. Title: {betreff}, From: {author}'.format(betreff = betreff.strip(),
+                                                                                      author = author))
+
+        if not linklist:
+            print_cstring('No message found.')
 
 
 
