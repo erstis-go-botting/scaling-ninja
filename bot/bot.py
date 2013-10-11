@@ -19,6 +19,7 @@ from collections import OrderedDict
 # ATTACK
 
 
+
 class Bot(BotContainer):
     """
     Just a bot, to pwn the world.
@@ -327,7 +328,11 @@ class Bot(BotContainer):
             else:
                 print 'invalid unit: {unit}'.format(unit=unit)
 
-            self.browser.select_form( nr = 0 )
+            try:
+                self.browser.select_form( nr = 0 )
+            except mechanize.FormNotFoundError:
+                # The building probably isn't there yet
+                return
             try:
                 self.browser.select_form( nr = 0 )
             except mechanize.FormNotFoundError:
@@ -459,6 +464,13 @@ class Bot(BotContainer):
             else:
                 return 1
 
+        def has_no_lights( ):
+            """
+            Implementing farm for pre-warp civilisations.
+            """
+            if self.units['light']['all']:
+                pass
+
         def is_noob():
             """
             if we only have 20 or less
@@ -466,9 +478,8 @@ class Bot(BotContainer):
             this function returns 1,
             else 0.
             """
-            if self.units['axe']['available'] + self.units['light']['available'] <= 20:
-                if self.units['axe']['all'] + self.units['light']['all'] <= 20:
-                    return 1
+            if self.buildings['smith'] == 0:
+                return 1
             else:
                 return 0
 
@@ -477,7 +488,7 @@ class Bot(BotContainer):
             A very simple farming function.
             Only attacks with spear/axe/sword.
             Only sends one group / target,
-            attacks only targets up to distance.
+            attacks only targets up to distance 10.
             """
 
             # DECLARATIONS --------------------------------------------------------------------- #
@@ -518,12 +529,14 @@ class Bot(BotContainer):
 
 
         if not can_farm():
+            # we can abbort this function if we aren't able to farm.
             return 0
 
         if is_noob():
             dummy_farm()
             return 0
-
+        
+        elif has_no_lights():
 
 
     def igm_reader(self):
