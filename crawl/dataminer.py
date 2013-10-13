@@ -6,6 +6,7 @@ from json import loads
 import re
 from math import sqrt
 from collections import OrderedDict
+import datetime
 
 
 
@@ -20,7 +21,10 @@ class FarmTargetHandler(object):
 
         self.bot = bot
         self.raw_map = self.analyze_map()
+
+        # filter that map
         self.filtered_map = self.remove_noobprot(self.raw_map)
+        self.filtered_map = self.remove_dangerous(self.filtered_map)
 
 
     def analyze_map(self):
@@ -119,7 +123,7 @@ class FarmTargetHandler(object):
                                                'points': int( player_points.replace('.', '') ), 'noobprot': noobprot,
                                                'barb': barbarian, 'distance': distance}
 
-        # sort for distance, bitchez!
+        # sort for distance
         return OrderedDict( sorted( raw_map.items( ), key = lambda t: t[ 1 ][ 'distance' ] ) )
 
     @staticmethod
@@ -130,10 +134,78 @@ class FarmTargetHandler(object):
         new_map = OrderedDict([ objekt for objekt in old_map.items( ) if objekt[ 1 ][ 'noobprot' ] == 0 ])
         return new_map
 
+    def remove_dangerous(self, old_map):
+        """
+        Just removes protected elements
+        """
+        dangerous_items = self.parse_reports()
+        new_map = OrderedDict([ objekt for objekt in old_map.items() if objekt[0] not in dangerous_items ])
+        return new_map
+
     @staticmethod
     def distance( home, target ):
         value = (int(home[ 'x' ]) - int(target[ 'x' ])) ** 2 + (int(home[ 'y' ]) - int(target[ 'y' ])) ** 2
         return sqrt( value )
+
+    def parse_reports(self):
+        """
+        Reads the reports and stuff
+        """
+        # Navigating to attack reports & making soup!
+
+        dangerous = set()
+        def parse_time(time):
+            """
+            takes something like
+            u'13.10.13 20:46'
+
+            returns a datetime object
+            """
+            split_time = re.findall('\d+', time)
+            year = int('20' + split_time[2])
+
+            time_object = datetime.datetime(year=int('20+'))
+
+        self.bot.open("report&mode=attack")
+        soup = BeautifulSoup(self.bot.browser.response().read())
+
+        # Getting the right table (erster und letzter eintrag entfernen.
+        rl = soup.find( 'table', id = 'report_list' ).find_all('tr')[1:-1]
+
+        for row in rl:
+            color = re.findall( '/([a-z]+?)\.png', row.img.get('src') )[0]
+            if color == 'green':
+                loot_status = re.findall('/(\d+?)\.png', row.img.next_sibling.next_sibling.get('src'))[0]
+            else:
+                loot_status = 0
+            coordinate_helper = re.search( r'(\d+)[|](\d+)', row.span.span.get_text( strip = True ) )
+            x = coordinate_helper.group(1)
+            y = coordinate_helper.group(2)
+
+            time = row.find_all('td')[-1].string
+            # TODO do something with this!
+            # time looks like this: u'13.10.13 20:46'
+
+            id_ = self.conversion_coord_to_id(x=x, y=y)
+            if color != 'green':
+                dangerous.add(id_)
+        return dangerous
+            #print 'Village found with: {color}, {loot_status} ({x}|{y}) id = [{id_}]'.format(**locals())
+
+    def conversion_coord_to_id(self, x, y):
+        """
+        expects 2 coordinates, returns an id
+        (if the coordinates are stored in raw_map,
+        else 0 is returned.)
+        """
+        x, y = int(x), int(y)
+
+        try:
+            id_ = [element for element in self.raw_map if self.raw_map[element]['x'] == x if self.raw_map[element]['y'] == y][0]
+        except IndexError:
+            id_ = 0
+
+        return id_
 
     def get_villages_under_attack(self):
         """

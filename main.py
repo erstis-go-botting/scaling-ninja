@@ -21,18 +21,13 @@ def main(br):
     soul.trade()
     soul.farm()
     soul.close()
-    fth = FarmTargetHandler( soul )
 
-    print_cstring( '\nRank: ' + soul.var_game_settings[ 'player' ][ 'rank' ], 'blue' )
+    #print_cstring( '\nRank: ' + soul.var_game_settings[ 'player' ][ 'rank' ], 'blue' )
 
     igm = int(soul.var_game_settings['player']['new_igm'])
     if igm:
         print_cstring('You got new ingame messages!'.format(**locals()), 'magenta')
         soul.igm_reader()
-
-
-    #soul.igm_reader()
-    # buggy atm
 
     print_cstring('#'*100+'\n', 'yellow')
 
