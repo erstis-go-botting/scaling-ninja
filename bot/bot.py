@@ -101,7 +101,6 @@ class Bot(BotContainer):
             self.open('market&mode=own_offer')
             if int(sell_count) > 1000 or int(buy_count) > 1000:
                 print 'incorrect function usage. a trader can only carry 1k ressources'
-                print 'go fuck yourself.'
 
             self.browser.select_form( nr = 0 )
             self.browser.form[ "sell" ] = str(sell_count)
@@ -224,7 +223,7 @@ class Bot(BotContainer):
 
         # ---------------------------------------------------- ]
 
-
+        print requ, offer
         # bei einer guten balance muessen wir nicht traden
         if not requ or not offer:
             return
@@ -327,7 +326,6 @@ class Bot(BotContainer):
             else:
                 print 'invalid unit: {unit}'.format(unit=unit)
 
-            self.browser.select_form( nr = 0 )
             try:
                 self.browser.select_form( nr = 0 )
             except mechanize.FormNotFoundError:
@@ -357,19 +355,22 @@ class Bot(BotContainer):
 
             try:
                 if self.units['barracks_time'] < 10*60 or self.storage_critical:
-                    make_units('axe', 10)
+                    if self.buildings['barracks']:
+                        make_units('axe', 10)
             except KeyError as error:
                 print "KeyError: {0}".format(error)
 
             try:
                 if self.units['stable_time'] < 10*60 or self.storage_critical:
-                    make_units('light', 5)
+                    if self.buildings[ 'stable' ]:
+                        make_units('light', 5)
             except KeyError as error:
                 print "KeyError: {0}".format(error)
 
             try:
                 if self.units['garage_time'] < 10*60 or self.storage_critical:
-                    make_units('catapult', 5)
+                    if self.buildings[ 'garage' ]:
+                        make_units('catapult', 5)
             except KeyError as error:
                 print "KeyError: {0}".format(error)
 
@@ -403,7 +404,8 @@ class Bot(BotContainer):
 
 
         self.open('place')
-        print "Attacking [{target[x]}|{target[y]}] ({target[points]} points) with payload:\n{units}".format(**locals())
+        print_cstring("Attacking [{target[x]}|{target[y]}] ({target[points]} points) with payload:".format(**locals()), 'turq')
+        print_cstring('{units}'.format(**locals()), 'blue')
 
         self.browser.select_form( nr = 0 )
         self.browser.form[ "x" ] = str( target['x'] ) ##Koordinaten des anzugreiffenden Dorfes...
@@ -454,7 +456,7 @@ class Bot(BotContainer):
             """
             if (self.units['axe']['available'] +
                 self.units['sword']['available'] +
-                self.units['light']['available']) <= 5:
+                self.units['light']['available']) <= 3:
                 return 0
             else:
                 return 1
@@ -466,9 +468,8 @@ class Bot(BotContainer):
             this function returns 1,
             else 0.
             """
-            if self.units['axe']['available'] + self.units['light']['available'] <= 20:
-                if self.units['axe']['all'] + self.units['light']['all'] <= 20:
-                    return 1
+            if self.buildings['smith'] == 0:
+                return 1
             else:
                 return 0
 
@@ -480,6 +481,7 @@ class Bot(BotContainer):
             attacks only targets up to distance.
             """
 
+            print ''
             # DECLARATIONS --------------------------------------------------------------------- #
             # units...
             spear = self.units['spear']['available']
@@ -491,7 +493,7 @@ class Bot(BotContainer):
             atlas = fth.filtered_map
             atlas = OrderedDict([ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75 and
                                                                          objekt[ 1 ][ 'distance' ] < 10])
-            victim_gen = iter(atlas.values)
+            victim_gen = iter(atlas.values())
             # farmgroups...
             groups = int(axe / 2) + int(sword / 3)
             if groups > len(atlas):
@@ -500,6 +502,10 @@ class Bot(BotContainer):
                 return 0
 
             spear_per_group = spear / groups
+            max_spear_per_group = self.units['spear']['all'] / (int(self.units['axe']['available'] / 2 +
+                                                                int(self.units['sword']['available']) / 3)) + 2
+            if spear_per_group > max_spear_per_group:
+                spear_per_group = max_spear_per_group
             # END OF DECLARATIONS -------------------------------------------------------------- #
 
             for i in range(groups):
@@ -523,7 +529,6 @@ class Bot(BotContainer):
         if is_noob():
             dummy_farm()
             return 0
-
 
 
     def igm_reader(self):

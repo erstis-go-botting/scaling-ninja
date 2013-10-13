@@ -93,8 +93,14 @@ class FarmTargetHandler(object):
                         barbarian = 1
                     else:
                         barbarian = 0
-                        player_points = superlist['data']['players'][player_id][1]
-                        noobprot = superlist['data']['players'][player_id][3]
+                        try:
+                            player_points = superlist['data']['players'][player_id][1]
+                            noobprot = superlist[ 'data' ][ 'players' ][ player_id ][ 3 ]
+                        except KeyError:
+                            # verlassenes dorf
+                            player_points = village[ 3 ]
+                            noobprot = 0
+
                     if noobprot:
                         # 1 is more usefull than a string, which we would need to parse for time
                         noobprot = 1
@@ -122,7 +128,7 @@ class FarmTargetHandler(object):
         """
         Just removes protected elements
         """
-        new_map = [ objekt for objekt in old_map.items( ) if objekt[ 1 ][ 'noobprot' ] == 0 ]
+        new_map = OrderedDict([ objekt for objekt in old_map.items( ) if objekt[ 1 ][ 'noobprot' ] == 0 ])
         return new_map
 
     @staticmethod

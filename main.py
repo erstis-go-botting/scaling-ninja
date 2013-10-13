@@ -9,11 +9,12 @@ from pprint import pprint
 import tools.toolbox
 from crawl.dataminer import FarmTargetHandler
 from ConfigParser import ConfigParser
-import os
+import time
 
 tools.toolbox.print_startup_information()
 
 def main(br):
+    print(time.asctime())
     soul = Bot(br)
     soul.construct()
     soul.recruit()
@@ -32,8 +33,6 @@ def main(br):
     #soul.igm_reader()
     # buggy atm
 
-    print '\nStatistics:'
-    pprint(soul.statistics)
     print_cstring('#'*100+'\n', 'yellow')
 
 

@@ -284,10 +284,32 @@ class BotContainer(object):
 
             units['garage_time'] = 0
             parse_units(soup, garage_units, 'garage')
+            
+        def quest_workaround():
+            """
+            This is a function to get those 10 axis / 10 swordies
+            you get with quests (without having the means to build them)
+            --> the other functions fail to fetch them.
+            """
+            self.open('overview')
+            soup = self.browser.response().read()
+            soup = BeautifulSoup(soup)
+
+            for fragment in soup.get_text().split('\n'):
+                if u'Schwertkämpfer' in fragment:
+                    helper = int(fragment.split(' ')[0])
+                    if helper > units['sword']['available']:
+                        units['sword']['available'] = helper
+
+                elif u'Axtkämpfer' in fragment:
+                    helper = int(fragment.split(' ')[0])
+                    if helper > units['axe']['available']:
+                        units['axe']['available'] = helper
 
         barracks()
         stable()
         garage()
+        quest_workaround()
 
         self.units = units
 
