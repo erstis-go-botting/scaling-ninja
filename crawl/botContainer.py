@@ -63,7 +63,6 @@ class BotContainer(object):
         self.refresh_all()
         self.get_next_building()
 
-
     def parse_worldsettings(self):
         """
         Parses and fetsches some attributes from /stat.php?mode=settings
@@ -92,7 +91,6 @@ class BotContainer(object):
                     else:
                         value = 'parsing failure'
                     self.worldsettings[unicode(keyword)] = value
-
 
     def open(self, place, village=None):
         """

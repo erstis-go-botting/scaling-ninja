@@ -466,7 +466,9 @@ class Bot(BotContainer):
             Implementing farm for pre-warp civilisations.
             """
             if self.units['light']['all']:
-                pass
+                return 1
+            else:
+                return 0
 
         def is_noob():
             """
@@ -528,6 +530,22 @@ class Bot(BotContainer):
 
             print 'End of farming.\n'
 
+        def no_light_farm():
+            """
+            # here we know, that we have a smithy and
+            # we don't have access lights.
+            # we use the following units to farm:
+            # sword / axe / spear.
+            # swords / axe make sure that no units die.
+            # spears carry loot.
+            # spears are good, but we generally
+            # want to rush for lights.
+            """
+            sword = self.units['sword']['available']
+            axe = self.units['axe']['available']
+            spear = self.units['spear']['available']
+
+            # TODO WRITE THIS FUNCION
 
         if not can_farm():
             return 0
@@ -537,8 +555,15 @@ class Bot(BotContainer):
             return 0
         
         elif has_no_lights():
-            pass
-
+            # here we know, that we have a smithy and
+            # we don't have access lights.
+            # we use the following units to farm:
+            # sword / axe / spear.
+            # swords / axe make sure that no units die.
+            # spears carry loot.
+            # spears are good, but we generally
+            # want to rush for lights.
+            no_light_farm()
 
 
     def igm_reader(self):
