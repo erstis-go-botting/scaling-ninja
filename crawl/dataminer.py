@@ -23,7 +23,6 @@ class FarmTargetHandler(object):
         self.filtered_map = self.remove_noobprot(self.raw_map)
 
 
-
     def analyze_map(self):
 
         """
@@ -135,3 +134,26 @@ class FarmTargetHandler(object):
     def distance( home, target ):
         value = (int(home[ 'x' ]) - int(target[ 'x' ])) ** 2 + (int(home[ 'y' ]) - int(target[ 'y' ])) ** 2
         return sqrt( value )
+
+    def get_villages_under_attack(self):
+        """
+        A simple function which just returns
+        a set containing village_ids, which are beeing attacked
+        by the bot at the moment of the function call.
+
+        Obtains results from:
+        http://de99.die-staemme.de/game.php?village=17882&mode=commands&screen=overview_villages&type=attack
+        """
+        villages_under_attack = set()
+
+        self.bot.open('overview_villages&type=attack&mode=commands')
+        soup = self.bot.browser.response().read()
+        soup = BeautifulSoup(soup)
+        reg = re.compile( r'.*info_command' )
+
+        for element in soup.find_all(href = reg):
+            url = element.get('href')
+            village_id = re.findall( r'id=(\d+)', url )[0]
+            villages_under_attack.add(village_id)
+
+        return villages_under_attack
