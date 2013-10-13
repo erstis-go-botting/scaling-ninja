@@ -46,6 +46,8 @@ class Bot(BotContainer):
                 break
             else:
                 self.storage_critical = 0
+        #
+        self.fth = FarmTargetHandler( self )
 
         # is the farm very full?
         if self.ressources['pop_now'] > self.ressources['pop_max'] * 0.8:
@@ -441,11 +443,6 @@ class Bot(BotContainer):
         #nod = [objekt for objekt in od.items() if objekt[1]['points'] < 100 and objekt[1]['barb']]
         #ai.slow_attack(nod[2][1], {'light': 10})
         """
-        #ai = Bot(browser)
-        #fth = FarmTargetHandler(ai)
-        #od = fth.raw_map
-        #nod = [objekt for objekt in od.items() if objekt[1]['points'] < 100 and objekt[1]['barb']]
-        #ai.slow_attack(nod[2][1], {'light': 10})
 
         def can_farm():
             """
@@ -465,7 +462,7 @@ class Bot(BotContainer):
             """
             Implementing farm for pre-warp civilisations.
             """
-            if self.units['light']['all']:
+            if not self.units['light']['all']:
                 return 1
             else:
                 return 0
@@ -489,16 +486,14 @@ class Bot(BotContainer):
             Only sends one group / target,
             attacks only targets up to distance 10.
             """
-
             # DECLARATIONS --------------------------------------------------------------------- #
             # units...
             spear = self.units['spear']['available']
             axe = self.units['axe']['available']
             sword = self.units['sword']['available']
 
-            # Get a map & only attack villages with less than 75 points & distance less than 10.
-            fth = FarmTargetHandler( self )
-            atlas = fth.filtered_map
+            # Get a map & only attack villages with less than 75 points & distance less than 1
+            atlas = self.fth.filtered_map
             atlas = OrderedDict([ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75 and
                                                                          objekt[ 1 ][ 'distance' ] < 10])
             victim_gen = iter(atlas.values())
@@ -511,7 +506,7 @@ class Bot(BotContainer):
 
             spear_per_group = spear / groups
             max_spear_per_group = self.units['spear']['all'] / (int(self.units['axe']['available'] / 2 +
-                                                                int(self.units['sword']['available']) / 3)) + 2
+                                                                int(self.units['sword']['available']) / 3)) + 5
             if spear_per_group > max_spear_per_group:
                 spear_per_group = max_spear_per_group
             # END OF DECLARATIONS -------------------------------------------------------------- #
@@ -530,22 +525,6 @@ class Bot(BotContainer):
 
             print 'End of farming.\n'
 
-        def no_light_farm():
-            """
-            # here we know, that we have a smithy and
-            # we don't have access lights.
-            # we use the following units to farm:
-            # sword / axe / spear.
-            # swords / axe make sure that no units die.
-            # spears carry loot.
-            # spears are good, but we generally
-            # want to rush for lights.
-            """
-            sword = self.units['sword']['available']
-            axe = self.units['axe']['available']
-            spear = self.units['spear']['available']
-
-            # TODO WRITE THIS FUNCION
 
         if not can_farm():
             return 0
@@ -555,15 +534,13 @@ class Bot(BotContainer):
             return 0
         
         elif has_no_lights():
-            # here we know, that we have a smithy and
-            # we don't have access lights.
-            # we use the following units to farm:
-            # sword / axe / spear.
-            # swords / axe make sure that no units die.
-            # spears carry loot.
-            # spears are good, but we generally
-            # want to rush for lights.
-            no_light_farm()
+            print 1
+            dummy_farm()
+            return 0
+
+        else:
+            print 'here'
+
 
 
     def igm_reader(self):
