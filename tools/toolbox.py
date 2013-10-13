@@ -25,6 +25,7 @@ def print_cstring(string, color='blue'):
     colors = {'red': 31, 'green': 32, 'yellow': 33, 'blue': 34, 'magenta': 35, 'turq': 36, 'white': 37}
     print "\033[%sm%s\033[0m" % (colors[color], string)
 
+
 def wait_dont_sleep(seconds):
     """
     This function can be used just like time.sleep, but it
@@ -45,7 +46,6 @@ def wait_dont_sleep(seconds):
         # Forces the system to be in the working state by resetting the system idle timer.
         KERNEL32.SetThreadExecutionState( ctypes.c_int( ES_SYSTEM_REQUIRED ) )
         time.sleep(3)
-
 
 def make_browser():
     # initiate the browser.

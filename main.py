@@ -28,6 +28,7 @@ def main(br):
     igm = int(soul.var_game_settings['player']['new_igm'])
     if igm:
         print_cstring('You got new ingame messages!'.format(**locals()), 'magenta')
+        soul.igm_reader()
 
 
     #soul.igm_reader()
@@ -35,13 +36,14 @@ def main(br):
 
     print_cstring('#'*100+'\n', 'yellow')
 
-
 browser = tools.toolbox.make_browser()
-while 1:
-    thread.start_new_thread( main, (browser,) )
 
-    config = ConfigParser()
-    config.read( r'settings\settings.ini' )
+if __name__ == '__main__':
+    while 1:
+        thread.start_new_thread( main, (browser,) )
 
-    # Don't allow sleep/hibernate! Deep magic.
-    wait_dont_sleep(config.getint('control', 'sleep'))
+        config = ConfigParser()
+        config.read( r'settings\settings.ini' )
+
+        # Don't allow sleep/hibernate! Deep magic.
+        wait_dont_sleep(config.getint('control', 'sleep'))
