@@ -190,17 +190,18 @@ class FarmTargetHandler(object):
         rl = soup.find( 'table', id = 'report_list' ).find_all('tr')[1:-1]
 
         for row in rl:
-            try:
-                color = re.findall( '/([a-z]+?)\.png', row.img.get('src') )[0]
-                if color == 'green':
-                    try:
-                        loot_status = re.findall('/(\d+?)\.png', row.img.next_sibling.next_sibling.get('src'))[0]
-                    except TypeError:
-                        loot_status = 0
-                else:
+
+            color = re.findall( '/([a-z]+?)\.png', row.img.get('src') )[0]
+
+            if color == 'green':
+                try:
+                    loot_status = re.findall('/(\d+?)\.png', row.img.next_sibling.next_sibling.get('src'))[0]
+                except TypeError:
                     loot_status = 0
-            except IndexError:
-                pass
+            else:
+                loot_status = 0
+
+
             coordinate_helper = re.search( r'(\d+)[|](\d+)', row.span.span.get_text( strip = True ) )
             x = coordinate_helper.group(1)
             y = coordinate_helper.group(2)

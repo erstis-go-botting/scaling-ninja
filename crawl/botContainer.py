@@ -207,8 +207,8 @@ class BotContainer(object):
                     except AttributeError:
                         timelist = map( int, re.findall( r'\d+', str( element ) )[ 2:5 ] )
                     time = 60 * 60 * timelist[ 0 ] + 60 * timelist[ 1 ] + timelist[ 2 ]
-
-                    units[ art ][ 'available' ] += int( count )
+                    # this is false!
+                    #units[ art ][ 'available' ] += int( count )
                     units[ '{b}_time'.format(b=building) ] += int( time )
 
 
@@ -308,6 +308,7 @@ class BotContainer(object):
         stable()
         garage()
         quest_workaround()
+
 
         self.units = units
 
