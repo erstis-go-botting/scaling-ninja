@@ -31,6 +31,13 @@ def main(br):
 
     print_cstring('#'*100+'\n', 'yellow')
 
+    #soul.switch_village()
+
+    #for village_id in own_village:
+    #    """
+    #    Schleife für mehrere Dörfer hier:
+    #    """
+
 browser = tools.toolbox.make_browser()
 
 if __name__ == '__main__':
