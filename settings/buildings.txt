@@ -32,7 +32,7 @@ smith 1
 smith 2
 wood 11
 stone 12
-iron 10
+iron 11
 wood 12
 iron 12
 wood 14

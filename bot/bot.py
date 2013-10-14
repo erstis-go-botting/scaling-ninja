@@ -355,24 +355,26 @@ class Bot(BotContainer):
 
         if self.buildings['under_construction']:
 
+            quantity = (self.buildings['wood'] / 3) + 1
+
             try:
                 if self.units['barracks_time'] < 10*60 or self.storage_critical:
                     if self.buildings['barracks']:
-                        make_units('axe', 10)
+                        make_units('axe', quantity)
             except KeyError as error:
                 print "KeyError: {0}".format(error)
 
             try:
                 if self.units['stable_time'] < 10*60 or self.storage_critical:
                     if self.buildings[ 'stable' ]:
-                        make_units('light', 5)
+                        make_units('light', quantity / 2)
             except KeyError as error:
                 print "KeyError: {0}".format(error)
 
             try:
                 if self.units['garage_time'] < 10*60 or self.storage_critical:
                     if self.buildings[ 'garage' ]:
-                        make_units('catapult', 5)
+                        make_units('ram', quantity / 2)
             except KeyError as error:
                 print "KeyError: {0}".format(error)
 
@@ -495,7 +497,7 @@ class Bot(BotContainer):
             # Get a map & only attack villages with less than 75 points & distance less than 1
             atlas = self.fth.filtered_map
             atlas = OrderedDict([ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75 and
-                                                                         objekt[ 1 ][ 'distance' ] < 10])
+                                                                         objekt[ 1 ][ 'distance' ] < 15])
             victim_gen = iter(atlas.values())
             # farmgroups...
             groups = int(axe / 2) + int(sword / 3)
@@ -534,14 +536,11 @@ class Bot(BotContainer):
             return 0
         
         elif has_no_lights():
-            print 1
             dummy_farm()
             return 0
 
         else:
             print 'here'
-
-
 
     def igm_reader(self):
         """
@@ -581,6 +580,31 @@ class Bot(BotContainer):
         if not linklist:
             print_cstring('No message found.')
 
+
+    #def switch_village(self):
+    #    """
+    #    A function to switch bewtween all owned villages.
+    #    """
+    #    def owned_villages():
+    #        """
+    #        Gets a set with all Id's of the players villages.
+    #        """
+    #
+    #        own_villages = set()
+    #        self.open('overview')
+    #        soup_source_html =BeautifulSoup(self.browser.response().read())
+    #        table = soup_source_html.find_all('table')[21]
+    #        #print table
+    #        span = table.find_all('span')[0]
+    #        print span
+    #        village_url = span.find("a")["href"]
+    #        print village_url
+    #        own_villages.append(village_url)
+    #        print len(own_villages)
+    #        return own_villages
+    #
+    #    owned_villages()
+    #    self.browser.open('http://{world}.die-staemme.de{url}'.format(world=self.world, url = village_id))
 
 
 
