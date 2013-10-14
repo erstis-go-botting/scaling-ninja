@@ -406,13 +406,12 @@ class Bot(BotContainer):
         for u in not_defined_units:
             units[u] = 0
 
-
         self.open('place')
         print_cstring("Attacking [{target[x]}|{target[y]}] ({target[points]} points) with payload:".format(**locals()), 'turq')
         print_cstring('{units}'.format(**locals()), 'blue')
 
         self.browser.select_form( nr = 0 )
-        self.browser.form[ "x" ] = str( target['x'] ) ##Koordinaten des anzugreiffenden Dorfes...
+        self.browser.form[ "x" ] = str( target['x'] ) #Koordinaten des Ziels...
         self.browser.form[ "y" ] = str( target['y'] )
         self.browser.form[ "spear" ] = str( units['spear'] )
         self.browser.form[ "axe" ] = str( units['axe'] )
@@ -427,8 +426,7 @@ class Bot(BotContainer):
             self.browser.form[ "knight" ] = str( units['knight'] )
         except mechanize.ControlNotFoundError:
             pass
-            # On some worlds there are no knights!!!
-
+            # On some worlds there are no knights!
 
         self.browser.submit( )
         self.browser.select_form( nr = 0 )
