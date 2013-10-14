@@ -121,3 +121,7 @@ def print_startup_information():
     print_cstring( '# {string:<20} {s:>10} #'.format( string = 'Delay (in s): ', s = config.get( 'control', 'sleep' ) ) )
     print_cstring('#'*35)
     print ''
+
+
+
+

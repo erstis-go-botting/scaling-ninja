@@ -587,6 +587,31 @@ class Bot(BotContainer):
             print_cstring('No message found.')
 
 
+    #def switch_village(self):
+    #    """
+    #    A function to switch bewtween all owned villages.
+    #    """
+    #    def owned_villages():
+    #        """
+    #        Gets a set with all Id's of the players villages.
+    #        """
+    #
+    #        own_villages = set()
+    #        self.open('overview')
+    #        soup_source_html =BeautifulSoup(self.browser.response().read())
+    #        table = soup_source_html.find_all('table')[21]
+    #        #print table
+    #        span = table.find_all('span')[0]
+    #        print span
+    #        village_url = span.find("a")["href"]
+    #        print village_url
+    #        own_villages.append(village_url)
+    #        print len(own_villages)
+    #        return own_villages
+    #
+    #    owned_villages()
+    #    self.browser.open('http://{world}.die-staemme.de{url}'.format(world=self.world, url = village_id))
+
 
 
 
