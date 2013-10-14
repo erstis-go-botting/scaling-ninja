@@ -47,6 +47,7 @@ def wait_dont_sleep(seconds):
         KERNEL32.SetThreadExecutionState( ctypes.c_int( ES_SYSTEM_REQUIRED ) )
         time.sleep(3)
 
+
 def make_browser():
     # initiate the browser.
     # Cheat sheet:

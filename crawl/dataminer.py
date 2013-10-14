@@ -175,7 +175,10 @@ class FarmTargetHandler(object):
         for row in rl:
             color = re.findall( '/([a-z]+?)\.png', row.img.get('src') )[0]
             if color == 'green':
-                loot_status = re.findall('/(\d+?)\.png', row.img.next_sibling.next_sibling.get('src'))[0]
+                try:
+                    loot_status = re.findall('/(\d+?)\.png', row.img.next_sibling.next_sibling.get('src'))[0]
+                except TypeError:
+                    loot_status = 0
             else:
                 loot_status = 0
             coordinate_helper = re.search( r'(\d+)[|](\d+)', row.span.span.get_text( strip = True ) )
@@ -229,3 +232,11 @@ class FarmTargetHandler(object):
             villages_under_attack.add(village_id)
 
         return villages_under_attack
+
+    def owned_villages(self):
+        """
+        Gets a list with the ID's of every owned village.
+        """
+
+        own_villages = set()
+

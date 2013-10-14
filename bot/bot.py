@@ -491,14 +491,14 @@ class Bot(BotContainer):
             spear = self.units['spear']['available']
             axe = self.units['axe']['available']
             sword = self.units['sword']['available']
+            light = self.units['light']['available']
 
             # Get a map & only attack villages with less than 75 points & distance less than 1
             atlas = self.fth.filtered_map
-            atlas = OrderedDict([ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75 and
-                                                                         objekt[ 1 ][ 'distance' ] < 10])
+            atlas = OrderedDict([ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75])
             victim_gen = iter(atlas.values())
             # farmgroups...
-            groups = int(axe / 2) + int(sword / 3)
+            groups = int(axe / 2) + int(sword / 3) + int(light / 4)
             if groups > len(atlas):
                 groups = len(atlas)
             if not groups:
@@ -520,6 +520,10 @@ class Bot(BotContainer):
                     sword -= 3
                     self.slow_attack(target = victim_gen.next(), units = {'sword': 3, 'spear': spear_per_group})
 
+                elif light >= 4:
+                    light -=4
+                    self.slow_attack(target = victim_gen.next(), units = {'light': 4})
+
                 else:
                     print 'strange result in dummy_farm function. better doublecheck this.'
 
@@ -539,6 +543,7 @@ class Bot(BotContainer):
             return 0
 
         else:
+            dummy_farm()
             print 'here'
 
 
