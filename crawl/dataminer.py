@@ -18,7 +18,6 @@ class FarmTargetHandler(object):
         """
         Get that juicy data container class
         """
-
         self.bot = bot
         self.raw_map = self.analyze_map()
 
@@ -26,6 +25,14 @@ class FarmTargetHandler(object):
         self.filtered_map = self.remove_noobprot(self.raw_map)
         self.filtered_map = self.remove_dangerous(self.filtered_map)
 
+    def custom_map(self, rm_dangerous = 1, rm_under_attack = 1, rm_noobprot = 1, max_distance=1000, only_barbarians=0):
+        """
+        A function which provides a customized map!
+        Relies on self.raw_map, and on all those juicy
+        filter functions.
+        """
+        # TODO implement!
+        raise NotImplementedError
 
     def analyze_map(self):
 
@@ -162,9 +169,17 @@ class FarmTargetHandler(object):
             returns a datetime object
             """
             split_time = re.findall('\d+', time)
+
+            day = int(split_time[0])
+            month = int(split_time[1])
             year = int('20' + split_time[2])
 
-            time_object = datetime.datetime(year=int('20+'))
+            hour = int(split_time[3])
+            minute = int( split_time[4])
+
+            time_object = datetime.datetime(year=year, month=month, day=day, hour=hour, minute=minute)
+
+            return time_object
 
         self.bot.open("report&mode=attack")
         soup = BeautifulSoup(self.bot.browser.response().read())
@@ -178,19 +193,17 @@ class FarmTargetHandler(object):
                 loot_status = re.findall('/(\d+?)\.png', row.img.next_sibling.next_sibling.get('src'))[0]
             else:
                 loot_status = 0
-            coordinate_helper = re.search( r'(\d+)[|](\d+)', row.span.span.get_text( strip = True ) )
-            x = coordinate_helper.group(1)
-            y = coordinate_helper.group(2)
 
+            id_ = self.string_to_id(input_string=row.span.span.get_text( strip = True ) )
             time = row.find_all('td')[-1].string
+            time = parse_time(time)
             # TODO do something with this!
             # time looks like this: u'13.10.13 20:46'
 
-            id_ = self.conversion_coord_to_id(x=x, y=y)
             if color != 'green':
                 dangerous.add(id_)
+
         return dangerous
-            #print 'Village found with: {color}, {loot_status} ({x}|{y}) id = [{id_}]'.format(**locals())
 
     def conversion_coord_to_id(self, x, y):
         """
@@ -199,12 +212,10 @@ class FarmTargetHandler(object):
         else 0 is returned.)
         """
         x, y = int(x), int(y)
-
         try:
             id_ = [element for element in self.raw_map if self.raw_map[element]['x'] == x if self.raw_map[element]['y'] == y][0]
         except IndexError:
             id_ = 0
-
         return id_
 
     def get_villages_under_attack(self):
@@ -229,3 +240,16 @@ class FarmTargetHandler(object):
             villages_under_attack.add(village_id)
 
         return villages_under_attack
+
+    def string_to_id(self, input_string):
+        """
+        Expects something like
+        "ich bin an hier (123|456) lala"
+        returns a village id
+        """
+        searcher = re.search( r'(\d+)[|](\d+)', input_string )
+        x = searcher.group( 1 )
+        y = searcher.group( 2 )
+        id_ = self.conversion_coord_to_id( x = x, y = y )
+
+        return id_
