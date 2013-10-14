@@ -7,7 +7,7 @@ import re
 from math import sqrt
 from collections import OrderedDict
 import datetime
-
+from tools import toolbox
 
 
 class FarmTargetHandler(object):
@@ -25,6 +25,7 @@ class FarmTargetHandler(object):
         # filter that map
         self.filtered_map = self.remove_noobprot(self.raw_map)
         self.filtered_map = self.remove_dangerous(self.filtered_map)
+        self.filtered_map = self.remove_under_attack(self.filtered_map)
 
 
     def analyze_map(self):
@@ -76,7 +77,12 @@ class FarmTargetHandler(object):
 
             for x_modifier in sublist:
                 for y_modifier in sublist[x_modifier]:
-                    village = sublist[x_modifier][y_modifier]
+
+                    try:
+                        village = sublist[x_modifier][y_modifier]
+                    except TypeError:
+                        print x_modifier, y_modifier
+                        continue
                     # village is in the form: [u'69473', 7, u'Kentucky', u'342', u'9641899', u'100']
                     # a barbarian village is: [u'68444', 4, 0, u'47', u'0', u'100']
                     # [0] = villageid, [1] = ?, [2] = village_name, [3] = village_points, [4] = player_id, [5] = ?
@@ -142,6 +148,16 @@ class FarmTargetHandler(object):
         new_map = OrderedDict([ objekt for objekt in old_map.items() if objekt[0] not in dangerous_items ])
         return new_map
 
+
+    def remove_under_attack( self, old_map ):
+        """
+        Just removes attacked villages
+        """
+        under_attack = self.get_villages_under_attack()
+        new_map = OrderedDict( [ objekt for objekt in old_map.items( ) if objekt[ 0 ] not in under_attack ] )
+        return new_map
+
+
     @staticmethod
     def distance( home, target ):
         value = (int(home[ 'x' ]) - int(target[ 'x' ])) ** 2 + (int(home[ 'y' ]) - int(target[ 'y' ])) ** 2
@@ -153,6 +169,7 @@ class FarmTargetHandler(object):
         """
         # Navigating to attack reports & making soup!
 
+        long_storage = toolbox.init_shelve( 'reports_storage' )
         dangerous = set()
         def parse_time(time):
             """
@@ -191,6 +208,7 @@ class FarmTargetHandler(object):
 
             id_ = self.conversion_coord_to_id(x=x, y=y)
             if color != 'green':
+
                 dangerous.add(id_)
         return dangerous
             #print 'Village found with: {color}, {loot_status} ({x}|{y}) id = [{id_}]'.format(**locals())
@@ -227,9 +245,14 @@ class FarmTargetHandler(object):
         reg = re.compile( r'.*info_command' )
 
         for element in soup.find_all(href = reg):
-            url = element.get('href')
-            village_id = re.findall( r'id=(\d+)', url )[0]
-            villages_under_attack.add(village_id)
+            coordinate_helper = re.search( r'(\d+)[|](\d+)', element.get_text(strip = True) )
+
+            x = coordinate_helper.group(1)
+            y = coordinate_helper.group(2)
+
+            id_ = self.conversion_coord_to_id( x = x, y = y )
+
+            villages_under_attack.add(id_)
 
         return villages_under_attack
 

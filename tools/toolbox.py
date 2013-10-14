@@ -7,6 +7,7 @@ import mechanize
 import urllib
 import ConfigParser
 import os
+import shelve
 
 def print_cstring(string, color='blue'):
     """
@@ -121,3 +122,20 @@ def print_startup_information():
     print_cstring( '# {string:<20} {s:>10} #'.format( string = 'Delay (in s): ', s = config.get( 'control', 'sleep' ) ) )
     print_cstring('#'*35)
     print ''
+
+def init_shelve(filename):
+    """
+    expects a valid filename as input
+    outputs a shelve object
+    """
+
+    conf = ConfigParser.ConfigParser()
+    conf.read( r'settings/settings.ini' )
+    path = os.path.abspath(conf.get( 'storage', 'path' ))
+
+    resulting_path = os.path.join(path, filename)
+
+    my_shelve = shelve.open(resulting_path, writeback=True)
+    #if not os.path.exists(resulting_path):
+
+    return my_shelve

@@ -355,24 +355,26 @@ class Bot(BotContainer):
 
         if self.buildings['under_construction']:
 
+            quantity = (self.buildings['wood'] / 3) + 1
+
             try:
                 if self.units['barracks_time'] < 10*60 or self.storage_critical:
                     if self.buildings['barracks']:
-                        make_units('axe', 10)
+                        make_units('axe', quantity)
             except KeyError as error:
                 print "KeyError: {0}".format(error)
 
             try:
                 if self.units['stable_time'] < 10*60 or self.storage_critical:
                     if self.buildings[ 'stable' ]:
-                        make_units('light', 5)
+                        make_units('light', quantity / 2)
             except KeyError as error:
                 print "KeyError: {0}".format(error)
 
             try:
                 if self.units['garage_time'] < 10*60 or self.storage_critical:
                     if self.buildings[ 'garage' ]:
-                        make_units('catapult', 5)
+                        make_units('ram', quantity / 2)
             except KeyError as error:
                 print "KeyError: {0}".format(error)
 
@@ -453,7 +455,7 @@ class Bot(BotContainer):
             """
             if (self.units['axe']['available'] +
                 self.units['sword']['available'] +
-                self.units['light']['available']) <= 3:
+                self.units['light']['available']) <= 2:
                 return 0
             else:
                 return 1
@@ -491,14 +493,14 @@ class Bot(BotContainer):
             spear = self.units['spear']['available']
             axe = self.units['axe']['available']
             sword = self.units['sword']['available']
-            light = self.units['light']['available']
 
             # Get a map & only attack villages with less than 75 points & distance less than 1
             atlas = self.fth.filtered_map
-            atlas = OrderedDict([ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75])
+            atlas = OrderedDict([ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75 and
+                                                                         objekt[ 1 ][ 'distance' ] < 15])
             victim_gen = iter(atlas.values())
             # farmgroups...
-            groups = int(axe / 2) + int(sword / 3) + int(light / 4)
+            groups = int(axe / 2) + int(sword / 3)
             if groups > len(atlas):
                 groups = len(atlas)
             if not groups:
@@ -520,10 +522,6 @@ class Bot(BotContainer):
                     sword -= 3
                     self.slow_attack(target = victim_gen.next(), units = {'sword': 3, 'spear': spear_per_group})
 
-                elif light >= 4:
-                    light -=4
-                    self.slow_attack(target = victim_gen.next(), units = {'light': 4})
-
                 else:
                     print 'strange result in dummy_farm function. better doublecheck this.'
 
@@ -538,15 +536,11 @@ class Bot(BotContainer):
             return 0
         
         elif has_no_lights():
-            print 1
             dummy_farm()
             return 0
 
         else:
-            dummy_farm()
             print 'here'
-
-
 
     def igm_reader(self):
         """
