@@ -132,6 +132,37 @@ class FarmTargetHandler(object):
         # sort for distance
         return OrderedDict( sorted( raw_map.items( ), key = lambda t: t[ 1 ][ 'distance' ] ) )
 
+
+    def custom_map(self, points = False, distance = False, rm_noobprot = True, rm_dangerous = True,
+                   rm_under_attack = True, only_barbarians = False):
+        """
+        Generates a fantastic custom map (cmap)
+        Should be pretty self explanatory.
+        (obviously) returns cmap
+        """
+        cmap = self.raw_map
+
+        if rm_noobprot:
+            cmap = self.remove_noobprot(cmap)
+        if rm_dangerous:
+            cmap = self.remove_dangerous(cmap)
+        if rm_under_attack:
+            cmap = self.remove_under_attack(cmap)
+        if distance:
+            cmap = OrderedDict( [ objekt for objekt in cmap.items() if objekt[1]['distance'] < distance])
+        if points:
+            cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] < points ] )
+        if only_barbarians:
+            print 'only barbarians not implemented yet'
+            pass
+
+        #atlas = OrderedDict( [ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75 and
+        #                                                              objekt[ 1 ][ 'distance' ] < 15 ] )
+
+        return cmap
+
+
+
     @staticmethod
     def remove_noobprot(old_map):
         """
@@ -148,7 +179,6 @@ class FarmTargetHandler(object):
         new_map = OrderedDict([ objekt for objekt in old_map.items() if objekt[0] not in dangerous_items ])
         return new_map
 
-
     def remove_under_attack( self, old_map ):
         """
         Just removes attacked villages
@@ -156,7 +186,6 @@ class FarmTargetHandler(object):
         under_attack = self.get_villages_under_attack()
         new_map = OrderedDict( [ objekt for objekt in old_map.items( ) if objekt[ 0 ] not in under_attack ] )
         return new_map
-
 
     @staticmethod
     def distance( home, target ):

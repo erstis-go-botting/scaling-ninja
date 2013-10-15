@@ -35,6 +35,16 @@ stone 12
 iron 11
 wood 12
 iron 12
+stone 12
+main 10
+barracks 2
+barracks 3
+smith 3
+smith 4
+smith 5
+barracks 5
+stable 3
+iron 15
 wood 14
 stone 14
 iron 14
@@ -48,19 +58,10 @@ wood 17
 iron 16
 wood 19
 
-barracks 2
-barracks 3
-smith 3
-smith 4
-smith 5
-barracks 5
-stable 1
 market 10
 stone 20
 wood 20
 iron 18
-stable 2
-stable 3
 main 15
 stone 22
 wood 22
