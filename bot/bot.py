@@ -341,6 +341,16 @@ class Bot(BotContainer):
             except mechanize.ControlNotFoundError:
                 print "{unit} control not found".format(unit=unit)
 
+        def need_to_start_light_production():
+            """
+            Bestimmt ob wir in der kritischen Phase sind, in der wir lkavs
+            priorisieren müssen.
+            """
+            if self.buildings['stable'] == 3 and self.units['light']['all'] < 50:
+                if self.units[ 'light' ][ 'all' ] > 0:
+                    return 1
+            return 0
+
         def unit_quest():
             """
             Just a function for the various quests.
@@ -351,47 +361,57 @@ class Bot(BotContainer):
                     print 'You are on Quest 8!!!'
                     make_units('spear', '2')
 
+        def default_recruit():
+            """
+            the standard, if no special conditions apply
+            """
+            # Only build units if a building is under construction
+            if self.buildings['under_construction']:
+
+                quantity = (self.buildings['wood'] / 3) + 1
+
+                try:
+                    if self.units['barracks_time'] < 10*60 or self.storage_critical:
+                        if self.buildings['barracks']:
+                            make_units('axe', quantity)
+                except KeyError as error:
+                    print "KeyError: {0}".format(error)
+
+                try:
+                    if self.units['stable_time'] < 10*60 or self.storage_critical:
+                        if self.buildings[ 'stable' ]:
+                            make_units('light', quantity / 2)
+                except KeyError as error:
+                    print "KeyError: {0}".format(error)
+
+                try:
+                    if self.units['garage_time'] < 10*60 or self.storage_critical:
+                        if self.buildings[ 'garage' ]:
+                            make_units('ram', quantity / 2)
+                except KeyError as error:
+                    print "KeyError: {0}".format(error)
+
+
+        def start_light_production():
+            """
+            Light production bis wir 50 haben.
+            """
+
+            try:
+                make_units( 'light', 1 )
+            except KeyError as error:
+                pass
+
         unit_quest()
 
-        if self.buildings['under_construction']:
+        # lights between 1 and 50
+        if need_to_start_light_production():
+            start_light_production()
 
-            quantity = (self.buildings['wood'] / 3) + 1
+        # else: defaulting.
+        else:
+            default_recruit()
 
-            try:
-                if self.units['barracks_time'] < 10*60 or self.storage_critical:
-                    if self.buildings['barracks']:
-                        make_units('axe', quantity)
-            except KeyError as error:
-                print "KeyError: {0}".format(error)
-
-            try:
-                if self.units['stable_time'] < 10*60 or self.storage_critical:
-                    if self.buildings[ 'stable' ]:
-                        make_units('light', quantity / 2)
-            except KeyError as error:
-                print "KeyError: {0}".format(error)
-
-            try:
-                if self.units['garage_time'] < 10*60 or self.storage_critical:
-                    if self.buildings[ 'garage' ]:
-                        make_units('ram', quantity / 2)
-            except KeyError as error:
-                print "KeyError: {0}".format(error)
-
-    #def igm_reader(self):
-        #self.open('mail')
-        #soup_source_mail = BeautifulSoup(self.browser.response().read())
-        #table = soup_source_mail.find_all('table', class_='vis')[2]
-        #igm_all = table.find_all("td", colspan = "2")
-        #for i in range(len(img_all)):
-        #    if 'new_mail.png' in img_all[i].find('img')['src'] == 1:
-        #        img_neu_url = img_all[i].find('a')['href']
-        #        self.bot.browser.open('http://{world}.die-staemme.de{mail_url'.format(world = 'world', mail_url= 'img_neu_url'))
-
-
-        #if get_igm:
-        #    print 'igm gelesen'
-            #print_cstring('New Message read. Title: ')
 
     def slow_attack(self, target, units):
         """
@@ -467,6 +487,15 @@ class Bot(BotContainer):
             else:
                 return 0
 
+        def has_no_rams( ):
+            """
+            Implementing farm for pre-warp civilisations.
+            """
+            if not self.units['ram']['all']:
+                return 1
+            else:
+                return 0
+
         def is_noob():
             """
             if we only have 20 or less
@@ -525,6 +554,62 @@ class Bot(BotContainer):
 
             print 'End of farming.\n'
 
+        def light_farm():
+            """
+            A farming function for early
+            civilisations with lights and no rams.
+            attacks only targets up to distance 15.
+            And 100 points.
+            """
+
+            # DECLARATIONS --------------------------------------------------------------------- #
+            # units...
+            spear = self.units[ 'spear' ][ 'available' ]
+            axe = self.units[ 'axe' ][ 'available' ]
+            sword = self.units[ 'sword' ][ 'available' ]
+            light = self.units['light']['available']
+
+            # Get a map & only attack villages with less than 75 points & distance less than 1
+            atlas = self.fth.custom_map(points = 100, distance = 15)
+            victim_gen = iter( atlas.values( ) )
+
+            # farmgroups...
+            inf_groups = axe/5 + sword/10
+            kav_groups = light/2
+            groups = kav_groups + inf_groups
+
+            if groups > len( atlas ):
+                groups = len( atlas )
+            if not groups:
+                return 0
+
+            # split spears.
+            spear_per_group = spear / inf_groups
+
+            # END OF DECLARATIONS -------------------------------------------------------------- #
+
+
+            for i in range( kav_groups ):
+                self.slow_attack( target = victim_gen.next( ), units = { 'light': 2 } )
+
+            for i in range( inf_groups ):
+                if axe >= 2:
+                    axe -= 2
+                    self.slow_attack( target = victim_gen.next( ), units = { 'axe': 5, 'spear': spear_per_group } )
+
+                elif sword >= 3:
+                    sword -= 3
+                    self.slow_attack( target = victim_gen.next( ), units = { 'sword': 10, 'spear': spear_per_group } )
+
+                else:
+                    print 'strange result in dummy_farm function. better doublecheck this.'
+
+
+
+            print 'End of farming.\n'
+
+            return 0
+
 
         if not can_farm():
             return 0
@@ -536,6 +621,11 @@ class Bot(BotContainer):
         elif has_no_lights():
             dummy_farm()
             return 0
+
+        elif has_no_rams():
+            light_farm()
+            return 0
+
 
         else:
             print 'here'
