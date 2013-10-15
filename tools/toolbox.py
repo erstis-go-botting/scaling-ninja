@@ -8,6 +8,7 @@ import urllib
 import ConfigParser
 import os
 import shelve
+import deathbycaptcha
 
 def print_cstring(string, color='blue'):
     """
@@ -139,3 +140,86 @@ def init_shelve(filename):
     #if not os.path.exists(resulting_path):
 
     return my_shelve
+
+
+def botprot(browser):
+    """
+    Class dedicated to captcha handling.
+    Fun stuff. (deep magic)
+    """
+
+    #config = ConfigParser.ConfigParser()
+    #config.read('settings.ini')
+    #world = config.get('login', 'server')
+    #
+    #browser.open("http://"+str(world)+".die-staemme.de/game.php?screen=main")
+    #botprot = 0
+    #for line in browser.response().readlines():
+    #    if 'Botschutz' in line:
+    #        botprot = 1
+    #if botprot:
+
+    config = ConfigParser.ConfigParser( )
+    config.read( r'settings\settings.ini' )
+
+    # fetch the credentials.
+    world = config.get( 'credentials', 'world' )
+    user = config.get( 'credentials', 'captcha_user' )
+    pw = config.get( 'credentials', 'captcha_pass' )
+
+
+    browser.retrieve('http://'+world+'.die-staemme.de/human.png', 'ca.png')
+    time.sleep(5)
+    client = deathbycaptcha.SocketClient(user, pw)
+    try:
+        balance = client.get_balance()
+        print_cstring('DEATHBYCAPTCHA Balance: [%s]' % balance, 'red')
+        if int(balance) < 50:
+            print 'BALANCE VERY LOW!!!'
+
+        captcha = client.decode("ca.png")
+        if captcha:
+        # The CAPTCHA was solved; captcha["captcha"] item holds its
+            # numeric ID, and captcha["text"] item its text.
+            print_cstring( "CAPTCHA %s solved: %s" % (captcha["captcha"], captcha["text"]), 'red')
+
+    # Access to DBC API denied, check your credentials and/or balance
+    except deathbycaptcha.AccessDeniedException:
+        print "DENIED!!!"
+        return 0
+
+
+    browser.select_form(nr=0)
+    try:
+        browser.form["code"] = str(captcha["text"])
+    except TypeError:
+        print 'TypeError'
+    browser.submit()
+    print_cstring( 'Captcha solved, fuck the system :)', 'blue')
+
+
+#if bot:
+#    try:
+#        print 'Testing for bot protection'
+#
+#        browser = mechanize.Browser( factory = mechanize.RobustFactory( ) )
+#        browser.addheaders = [ ("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0") ]
+#        browser.set_handle_robots( False )
+#        config = ConfigParser.ConfigParser( )
+#        config.read( 'settings.ini' )
+#        parameters = { 'user': config.get( 'login', 'username' ),
+#                       'password': config.get( 'login', 'password' ) }
+#        data = urllib.urlencode( parameters )
+#        browser.open( 'http://www.die-staemme.de/index.php?action=login&server_%s' % config.get( 'login', 'server' ), data )
+#
+#        while 1:
+#            try:
+#                still_botprot = botprot( browser )
+#                if not still_botprot:
+#                    with open( r'Data\botprot.txt', 'w' ) as fo:
+#                        fo.write( '0' )
+#                    break
+#            except Exception:
+#                raise
+#                print 'sevice overload?'
+#                break

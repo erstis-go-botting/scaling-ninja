@@ -116,7 +116,8 @@ class BotContainer(object):
         """
 
         # TODO write this little function perhaps. Remove @staticmethod perhaps. be imba perhaps.
-        pass
+
+        toolbox.botprot(self.browser)
 
     def refresh_all(self):
         """
