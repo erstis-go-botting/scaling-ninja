@@ -584,10 +584,8 @@ class Bot(BotContainer):
                 return 0
 
             # split spears.
-            try:
+            if inf_groups:
                 spear_per_group = spear / inf_groups
-            except ZeroDivisionError:
-                pass
             # END OF DECLARATIONS -------------------------------------------------------------- #
 
 
