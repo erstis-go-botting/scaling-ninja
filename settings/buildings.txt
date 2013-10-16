@@ -44,14 +44,16 @@ smith 4
 smith 5
 barracks 5
 stable 3
+market 6
 iron 15
 wood 14
 stone 14
 iron 14
 wood 15
 stone 15
-iron 15
 wall 5
+smith 10
+garage 1
 stone 17
 main 10
 wood 17
@@ -67,8 +69,6 @@ stone 22
 wood 22
 iron 22
 main 20
-smith 10
-garage 1
 
 stone 25
 wood 25
