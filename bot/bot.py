@@ -585,7 +585,7 @@ class Bot(BotContainer):
             if not groups:
                 return 0
 
-            # split spears. 1
+            # split spears. 
             if inf_groups:
                 spear_per_group = spear / inf_groups
 
