@@ -22,6 +22,8 @@ class BotContainer(object):
         All settings are loaded from settings\settings.ini
         """
 
+
+
         if not toolbox.is_logged_in( br ):
             toolbox.login( br )
 
