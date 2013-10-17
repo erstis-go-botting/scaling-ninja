@@ -9,6 +9,8 @@ import ConfigParser
 import os
 import shelve
 import deathbycaptcha
+import re
+import datetime
 
 def print_cstring(string, color='blue'):
     """
@@ -198,28 +200,22 @@ def botprot(browser):
     print_cstring( 'Captcha solved, fuck the system :)', 'blue')
 
 
-#if bot:
-#    try:
-#        print 'Testing for bot protection'
-#
-#        browser = mechanize.Browser( factory = mechanize.RobustFactory( ) )
-#        browser.addheaders = [ ("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:17.0) Gecko/17.0 Firefox/17.0") ]
-#        browser.set_handle_robots( False )
-#        config = ConfigParser.ConfigParser( )
-#        config.read( 'settings.ini' )
-#        parameters = { 'user': config.get( 'login', 'username' ),
-#                       'password': config.get( 'login', 'password' ) }
-#        data = urllib.urlencode( parameters )
-#        browser.open( 'http://www.die-staemme.de/index.php?action=login&server_%s' % config.get( 'login', 'server' ), data )
-#
-#        while 1:
-#            try:
-#                still_botprot = botprot( browser )
-#                if not still_botprot:
-#                    with open( r'Data\botprot.txt', 'w' ) as fo:
-#                        fo.write( '0' )
-#                    break
-#            except Exception:
-#                raise
-#                print 'sevice overload?'
-#                break
+def parse_time( time_string ):
+    """
+    takes something like
+    u'13.10.13 20:46'
+
+    returns a datetime object
+    """
+    split_time = re.findall( '\d+', time_string )
+
+    day = int(split_time[0])
+    month = int(split_time[1])
+    year = int( '20' + split_time[ 2 ] )
+
+    hour = int( split_time[ 3 ] )
+    minute = int( split_time[ 4 ] )
+
+    time_object = datetime.datetime( day = day, month = month, year = year, hour= hour, minute= minute )
+
+    return time_object

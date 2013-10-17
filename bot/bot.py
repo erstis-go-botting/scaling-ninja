@@ -8,6 +8,8 @@ from tools.toolbox import print_cstring
 from crawl.botContainer import BotContainer
 from crawl.dataminer import FarmTargetHandler
 import mechanize
+import datetime
+import tools.toolbox
 from collections import OrderedDict
 
 # UNITTRAIN BARRACKS
@@ -613,14 +615,79 @@ class Bot(BotContainer):
 
             return 0
 
+        def ram_farm():
+            """
+            We now have rams.
+            Time to bash.
+            Regular farming only with lights.
+            """
+
+            # FARMING PART! #
+            # DECLARATIONS --------------------------------------------------------------------- #
+            # units...
+            light = self.units[ 'light' ][ 'available' ]
+
+            # Get a map & only attack villages with less than 75 points & distance less than 1
+            atlas = self.fth.custom_map( points = 100, distance = 15 )
+            victim_gen = iter( atlas.values( ) )
+
+            # farmgroups...
+            groups = light / 4
+
+            if groups > len( atlas ):
+                groups = len( atlas )
+            # END OF DECLARATIONS -------------------------------------------------------------- #
+            for i in range( groups ):
+                self.slow_attack( target = victim_gen.next( ), units = { 'light': 4 } )
+            print 'End of farming.\n'
+            # END OF FARMING! #
+
+            # BASHING PART! #
+            # if we are low in troops, we can't bash. we will farm instead.
+            if self.units[ 'axe' ][ 'all' ] < 200:
+                light_farm()
+                return
+
+            axe = self.units[ 'axe' ][ 'available' ]
+            ram = self.units[ 'ram' ][ 'available' ]
+            # if we don't have enough units, we can abort
+            if axe < 170 or ram < 5:
+                return
+
+            min_points = 100
+            max_points = int(axe + ram * 3)
+            # only target weak targets during the night
+            if datetime.datetime.now() > datetime.datetime.now().replace(hour = 22, minute=0):
+                max_points = 120
+            elif datetime.datetime.now() < datetime.datetime.now().replace(hour = 7):
+                max_points = 120
+
+
+            atlas = self.fth.custom_map(points= max_points, min_points= min_points, distance=7, rm_dangerous=False, prefer_dangerous=True, include_cleared=False)
+            bash_victim = iter( atlas.values( ) ).next()
+
+
+            print_cstring("BASHING MODE ACTIVATED!", "magenta")
+            self.slow_attack(target = bash_victim, units = {'axe': axe, 'ram': ram})
+
+            cleared = tools.toolbox.init_shelve("cleared")
+            cleared[str(bash_victim['village_id'])] = 1
+            cleared.close()
+
+
+
+
+
+            return 0
+
 
         if not can_farm():
-            return 0
+                return 0
 
         if is_noob():
             dummy_farm()
             return 0
-        
+
         elif has_no_lights():
             dummy_farm()
             return 0
@@ -629,9 +696,9 @@ class Bot(BotContainer):
             light_farm()
             return 0
 
-
         else:
-            print 'here'
+            ram_farm( )
+
 
     def igm_reader(self):
         """
