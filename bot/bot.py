@@ -346,7 +346,7 @@ class Bot(BotContainer):
             Bestimmt ob wir in der kritischen Phase sind, in der wir lkavs
             priorisieren müssen.
             """
-            if self.buildings['stable'] == 3 and self.units['light']['all'] < 60:
+            if self.buildings['stable'] == 3 and self.units['light']['all'] < 50:
                 if self.units[ 'light' ][ 'all' ] > 0:
                     return 1
             return 0
@@ -363,25 +363,24 @@ class Bot(BotContainer):
 
         def default_recruit():
             """
-            the standard, if no special conditions apply. stable > barracks > garage.
+            the standard, if no special conditions apply
             """
             # Only build units if a building is under construction
             if self.buildings['under_construction']:
 
                 quantity = (self.buildings['wood'] / 3) + 1
 
-                # TODO reevaluate try except statement
-                try:
-                    if self.units['stable_time'] < 10*60 or self.storage_critical:
-                        if self.buildings[ 'stable' ]:
-                            make_units('light', quantity / 3)
-                except KeyError as error:
-                    print "KeyError: {0}".format(error)
-
                 try:
                     if self.units['barracks_time'] < 10*60 or self.storage_critical:
                         if self.buildings['barracks']:
                             make_units('axe', quantity)
+                except KeyError as error:
+                    print "KeyError: {0}".format(error)
+
+                try:
+                    if self.units['stable_time'] < 10*60 or self.storage_critical:
+                        if self.buildings[ 'stable' ]:
+                            make_units('light', quantity / 2)
                 except KeyError as error:
                     print "KeyError: {0}".format(error)
 
@@ -395,8 +394,7 @@ class Bot(BotContainer):
 
         def start_light_production():
             """
-            Light production bis wir 60 haben.
-            Ignore everything else.
+            Light production bis wir 50 haben.
             """
 
             try:
