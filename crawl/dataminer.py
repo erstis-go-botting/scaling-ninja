@@ -153,7 +153,8 @@ class FarmTargetHandler(object):
             if include_cleared:
                 cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] < points or str(objekt[0]) in cleared.keys()] )
             else:
-                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] < points and str(objekt[0]) not in cleared.keys()] )
+                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] < points] )
+
         if min_points:
             if prefer_dangerous:
                 dangerous_items = self.parse_reports( ).items( )
