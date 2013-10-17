@@ -27,15 +27,6 @@ class FarmTargetHandler(object):
         self.filtered_map = self.remove_dangerous(self.filtered_map)
         self.filtered_map = self.remove_under_attack(self.filtered_map)
 
-    def custom_map(self, rm_dangerous = 1, rm_under_attack = 1, rm_noobprot = 1, max_distance=1000, only_barbarians=0):
-        """
-        A function which provides a customized map!
-        Relies on self.raw_map, and on all those juicy
-        filter functions.
-        """
-        # TODO implement!
-        raise NotImplementedError
-
     def analyze_map(self):
 
         """
@@ -135,20 +126,20 @@ class FarmTargetHandler(object):
 
                         raw_map[village_id] = {'x': village_x, 'y': village_y, 'player_id': player_id,
                                                'points': int( player_points.replace('.', '') ), 'noobprot': noobprot,
-                                               'barb': barbarian, 'distance': distance}
+                                               'barb': barbarian, 'distance': distance, 'village_id': village_id}
 
         # sort for distance
         return OrderedDict( sorted( raw_map.items( ), key = lambda t: t[ 1 ][ 'distance' ] ) )
 
-
-    def custom_map(self, points = False, distance = False, rm_noobprot = True, rm_dangerous = True,
-                   rm_under_attack = True, only_barbarians = False):
+    def custom_map(self, points = False, distance = False, rm_noobprot = True, rm_dangerous = True, include_cleared = True,
+                   prefer_dangerous = True, rm_under_attack = True, only_barbarians = False, min_points = 0):
         """
         Generates a fantastic custom map (cmap)
         Should be pretty self explanatory.
         (obviously) returns cmap
         """
         cmap = self.raw_map
+        cleared = toolbox.init_shelve( "cleared" )
 
         if rm_noobprot:
             cmap = self.remove_noobprot(cmap)
@@ -159,17 +150,25 @@ class FarmTargetHandler(object):
         if distance:
             cmap = OrderedDict( [ objekt for objekt in cmap.items() if objekt[1]['distance'] < distance])
         if points:
-            cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] < points ] )
+            if include_cleared:
+                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] < points or str(objekt[0]) in cleared.keys()] )
+            else:
+                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] < points and str(objekt[0]) not in cleared.keys()] )
+        if min_points:
+            if prefer_dangerous:
+                dangerous_items = self.parse_reports( ).items( )
+                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] > min_points  and objekt[0] not in dangerous_items ])
+
+            else:
+                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] > min_points ])
         if only_barbarians:
-            print 'only barbarians not implemented yet'
+            print 'only_barbarians not implemented yet'
             pass
 
         #atlas = OrderedDict( [ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75 and
         #                                                              objekt[ 1 ][ 'distance' ] < 15 ] )
 
         return cmap
-
-
 
     @staticmethod
     def remove_noobprot(old_map):
@@ -183,7 +182,7 @@ class FarmTargetHandler(object):
         """
         Just removes protected elements
         """
-        dangerous_items = self.parse_reports()
+        dangerous_items = self.parse_reports().items()
         new_map = OrderedDict([ objekt for objekt in old_map.items() if objekt[0] not in dangerous_items ])
         return new_map
 
@@ -204,63 +203,82 @@ class FarmTargetHandler(object):
         """
         Reads the reports and stuff
         """
+        def deepscan(data_container):
+            """
+            Opens reports and scans them for fun & profit
+            """
+
+            for object in data_container:
+                # open the report & make soup
+
+                pass
+
+                #self.bot.open("report&mode=all&view=%s" % object['report_id'])
+                #soup = BeautifulSoup(self.bot.browser.response().read())
+                #loot = soup.find( "table", id = "attack_results" ).td.next_sibling.next_sibling.string
+                #got, max = re.findall('\d+', loot)
+                #
+
         # Navigating to attack reports & making soup!
 
-        long_storage = toolbox.init_shelve( 'reports_storage' )
-        dangerous = set()
-        def parse_time(time):
-            """
-            takes something like
-            u'13.10.13 20:46'
+        # DECLARATIONS
+        dangerous = toolbox.init_shelve( 'reports_storage' )
+        report_id_to_deepscan = list()
+        cleared = toolbox.init_shelve( "cleared" )
+        # END OF DECLARATIONS
 
-            returns a datetime object
-            """
-            split_time = re.findall('\d+', time)
-
-            day = int(split_time[0])
-            month = int(split_time[1])
-            year = int('20' + split_time[2])
-
-            hour = int(split_time[3])
-            minute = int( split_time[4])
-
-            time_object = datetime.datetime(year=year, month=month, day=day, hour=hour, minute=minute)
-
-            return time_object
-
+        # GET SOUP
         self.bot.open("report&mode=attack")
         soup = BeautifulSoup(self.bot.browser.response().read())
+        # END OF GET SOUP
 
+        # PARSE TABLE
         # Getting the right table (erster und letzter eintrag entfernen.
         rl = soup.find( 'table', id = 'report_list' ).find_all('tr')[1:-1]
 
         for row in rl:
 
+            # get color
             color = re.findall( '/([a-z]+?)\.png', row.img.get('src') )[0]
 
-            if color == 'green':
-                try:
-                    loot_status = re.findall('/(\d+?)\.png', row.img.next_sibling.next_sibling.get('src'))[0]
-                except TypeError:
-                    loot_status = 0
-            else:
-                loot_status = 0
+            # get village_id
+            village_id = self.string_to_id(row.span.span.get_text( strip = True ))
 
+            # get a time_string & convert it
+            time = toolbox.parse_time(row.find_all('td')[-1].string)
 
-            coordinate_helper = re.search( r'(\d+)[|](\d+)', row.span.span.get_text( strip = True ) )
-            x = coordinate_helper.group(1)
-            y = coordinate_helper.group(2)
+            # get report id
+            report_id = re.search(r'(\d+)', row.span.span.get("id")).group(0)
 
-            time = row.find_all('td')[-1].string
-            # TODO do something with this!
-            # time looks like this: u'13.10.13 20:46'
+            # we deepscan everything that is either not in our database, or that we have a
+            # newer report of.
+            if village_id not in dangerous.keys() or time > dangerous[str(village_id)]['time']:
+                if color != 'green':
+                    data = {'report_id': report_id, 'color': color, 'village_id': village_id, 'time':time}
+                    dangerous[str(village_id)] = data
+                    if village_id in cleared.keys():
+                        cleared.pop(village_id)
 
-            id_ = self.conversion_coord_to_id(x=x, y=y)
-            if color != 'green':
+                        print "deleted village: {village_id} from cleared.".format(**locals())
 
-                dangerous.add(id_)
+        dangerous.sync()
         return dangerous
             #print 'Village found with: {color}, {loot_status} ({x}|{y}) id = [{id_}]'.format(**locals())
+
+
+    def string_to_id(self, inputstring):
+        """
+        Input a string (like: main.py (main.py) greift Bonusdorf (636|504) )
+        and you get a village_id back. awesome.
+        """
+
+        coordinate_helper = re.search( r'(\d+)[|](\d+)', inputstring )
+        x = coordinate_helper.group( 1 )
+        y = coordinate_helper.group( 2 )
+        id_ = self.conversion_coord_to_id( x = x, y = y )
+
+        return id_
+
 
     def conversion_coord_to_id(self, x, y):
         """
@@ -305,15 +323,10 @@ class FarmTargetHandler(object):
 
         return villages_under_attack
 
-    def string_to_id(self, input_string):
+    def owned_villages(self):
         """
-        Expects something like
-        "ich bin an hier (123|456) lala"
-        returns a village id
+        Gets a list with the ID's of every owned village.
         """
-        searcher = re.search( r'(\d+)[|](\d+)', input_string )
-        x = searcher.group( 1 )
-        y = searcher.group( 2 )
-        id_ = self.conversion_coord_to_id( x = x, y = y )
 
-        return id_
+        own_villages = set()
+

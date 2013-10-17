@@ -54,9 +54,13 @@ stone 15
 wall 5
 smith 10
 garage 1
-stone 17
+iron 16
+wood 16
+stone 16
 wood 17
-iron 17
+stone 17
+main 10
+iron 16
 wood 19
 
 market 10
