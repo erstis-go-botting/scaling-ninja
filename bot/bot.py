@@ -653,7 +653,7 @@ class Bot(BotContainer):
                 return
 
             min_points = 100
-            max_points = int(axe + ram * 3)
+            max_points = int(axe*1.2 + ram * 3)
             # only target weak targets during the night
             if datetime.datetime.now() > datetime.datetime.now().replace(hour = 22, minute=0):
                 max_points = 120
@@ -662,8 +662,10 @@ class Bot(BotContainer):
 
 
             atlas = self.fth.custom_map(points= max_points, min_points= min_points, distance=7, rm_dangerous=False, prefer_dangerous=True, include_cleared=False)
-            bash_victim = iter( atlas.values( ) ).next()
-
+            try:
+                bash_victim = iter( atlas.values( ) ).next()
+            except StopIteration:
+                print 'Axis have to sleep too :)'
 
             print_cstring("BASHING MODE ACTIVATED!", "magenta")
             self.slow_attack(target = bash_victim, units = {'axe': axe, 'ram': ram})
