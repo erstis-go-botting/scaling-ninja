@@ -666,6 +666,7 @@ class Bot(BotContainer):
                 bash_victim = iter( atlas.values( ) ).next()
             except StopIteration:
                 print 'Axis have to sleep too :)'
+                return
 
             print_cstring("BASHING MODE ACTIVATED!", "magenta")
             self.slow_attack(target = bash_victim, units = {'axe': axe, 'ram': ram})
