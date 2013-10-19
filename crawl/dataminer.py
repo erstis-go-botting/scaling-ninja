@@ -22,7 +22,7 @@ class FarmTargetHandler(object):
         self.bot = bot
         self.raw_map = self.analyze_map()
         self.under_attack = self.get_villages_under_attack( )
-        self.dangerous_items = self.parse_reports( ).items( )
+        self.dangerous_items = self.parse_reports( )
 
         # filter that map
         self.filtered_map = self.remove_noobprot(self.raw_map)

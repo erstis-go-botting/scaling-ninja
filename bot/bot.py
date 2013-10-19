@@ -9,6 +9,7 @@ from crawl.botContainer import BotContainer
 from crawl.dataminer import FarmTargetHandler
 import mechanize
 import datetime
+from itertools import cycle
 import tools.toolbox
 from collections import OrderedDict
 
@@ -371,7 +372,7 @@ class Bot(BotContainer):
             quantity = (self.buildings[ 'wood' ] / 3) + 1
 
             try:
-                if self.units[ 'stable_time' ] < 10 * 60 or self.storage_critical:
+                if self.units[ 'stable_time' ] < 20 * 60 or self.storage_critical:
                     if self.buildings[ 'stable' ]:
                         make_units( 'light', quantity / 3 )
             except KeyError as error:
@@ -432,8 +433,8 @@ class Bot(BotContainer):
             units[u] = 0
 
         self.open('place')
-        print_cstring("Attacking [{target[x]}|{target[y]}] ({target[points]} points) with payload:".format(**locals()), 'turq')
-        print_cstring('{units}'.format(**locals()), 'blue')
+        #print_cstring("Attacking [{target[x]}|{target[y]}] ({target[points]} points) with payload:".format(**locals()), 'turq')
+        #print_cstring('{units}'.format(**locals()), 'blue')
 
         self.browser.select_form( nr = 0 )
         self.browser.form[ "x" ] = str( target['x'] ) #Koordinaten des Ziels...
@@ -623,7 +624,7 @@ class Bot(BotContainer):
             Regular farming only with lights.
             """
 
-            # FARMING PART! #
+            # FARMING PART! -------------------------------------------------------------------- #
             # DECLARATIONS --------------------------------------------------------------------- #
             # units...
             light = self.units[ 'light' ][ 'available' ]
@@ -639,16 +640,19 @@ class Bot(BotContainer):
             if groups > len( atlas ):
                 groups = len( atlas )
             # END OF DECLARATIONS -------------------------------------------------------------- #
+            color = cycle(['blue', 'turq'])
             for i in range( groups ):
-                self.slow_attack( target = victim_gen.next( ), units = { 'light': 4 } )
-            print 'End of farming.\n'
-            # END OF FARMING! #
+                victim = victim_gen.next( )
+                print_cstring("[{cur}/{all}]: {string:>11} ({victim[x]}|{victim[y]})".format(cur = i+1, all = groups, string = 'Attacking', **locals()), color.next())
+                self.slow_attack( target = victim, units = { 'light': 4 } )
+            # END OF FARMING! ------------------------------------------------------------------ #
 
-            # BASHING PART! #
+            # BASHING PART! -------------------------------------------------------------------- #
             # if we are low in troops, we can't bash. we will farm instead.
-            if self.units[ 'axe' ][ 'all' ] < 200:
-                light_farm()
-                return
+            # this causes strange bugs. check it. low priority
+            #if self.units['axe']['all'] < 200 or self.units['ram']['all'] < 5:
+            #    light_farm()
+            #    return
 
             axe = self.units[ 'axe' ][ 'available' ]
             ram = self.units[ 'ram' ][ 'available' ]
@@ -656,8 +660,12 @@ class Bot(BotContainer):
             if axe < 170 or ram < 5:
                 return
 
+            # if the main army is not home yer, we can abort
+            if 2*axe < self.units['axe']['all']:
+                return
+
             min_points = 100
-            max_points = int(axe*1.2 + ram * 3)
+            max_points = int(axe + ram * 2)
             # only target weak targets during the night
             if datetime.datetime.now() > datetime.datetime.now().replace(hour = 22, minute=0):
                 max_points = 120
@@ -673,6 +681,7 @@ class Bot(BotContainer):
                 return
 
             print_cstring("BASHING MODE ACTIVATED!", "magenta")
+            print_cstring( "Attacking ({victim[x]}|{victim[y]}) with {victim[points]} points.".format(**locals()), "magenta")
             self.slow_attack(target = bash_victim, units = {'axe': axe, 'ram': ram})
 
             cleared = tools.toolbox.init_shelve("cleared")
@@ -709,7 +718,7 @@ class Bot(BotContainer):
         self.open('mail')
         soup_source_mail = BeautifulSoup(self.browser.response().read())
 
-        table = soup_source_mail.find_all('table', class_='vis')[1]
+        table = soup_source_mail.find_all('table', class_='vis')[2]
         igm_all = table.find_all("td", colspan = "2")
 
         for link in igm_all:

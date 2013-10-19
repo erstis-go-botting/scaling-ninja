@@ -68,9 +68,7 @@ def is_logged_in(browser):
 
     # fetch the credentials.
     world = config.get( 'credentials', 'world' )
-    # TODO CHANGE WORLD!!!
-    browser.open( 'http://{world}.die-staemme.de/game.php?screen=overview&intro'.format(world=world))
-    # TODO exception abfangen
+    browser.open( 'http://{world}.die-staemme.de/game.php?screen=overview'.format(world=world))
     #except mechanize._response.httperror_seek_wrapper:
     #    print 'yuck'
 

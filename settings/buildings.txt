@@ -64,27 +64,23 @@ iron 16
 wood 19
 stable 10
 barracks 10
-iron 20
+iron 19
+main 15
+iron 21
 stone 19
 garage 3
 stable 15
 barracks 15
-
-market 10
-stone 20
-wood 20
-iron 18
-main 15
-stone 22
-wood 22
-iron 22
 main 20
 
-stone 25
-wood 25
-iron 25
+market 10
 smith 20
 snob 1
+
+iron 24
+wood 24
+stone 24
+
 stone 27
 wood 27
 iron 27
