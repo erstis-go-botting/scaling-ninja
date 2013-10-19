@@ -21,6 +21,8 @@ class FarmTargetHandler(object):
 
         self.bot = bot
         self.raw_map = self.analyze_map()
+        self.dangerous_items = self.parse_reports().items()
+        self.under_attack = self.get_villages_under_attack( )
 
         # filter that map
         self.filtered_map = self.remove_noobprot(self.raw_map)
@@ -132,7 +134,7 @@ class FarmTargetHandler(object):
         return OrderedDict( sorted( raw_map.items( ), key = lambda t: t[ 1 ][ 'distance' ] ) )
 
     def custom_map(self, points = False, distance = False, rm_noobprot = True, rm_dangerous = True, include_cleared = True,
-                   prefer_dangerous = True, rm_under_attack = True, only_barbarians = False, min_points = 0):
+                   prefer_dangerous = True, rm_under_attack = True, min_points = 0):
         """
         Generates a fantastic custom map (cmap)
         Should be pretty self explanatory.
@@ -149,22 +151,20 @@ class FarmTargetHandler(object):
             cmap = self.remove_under_attack(cmap)
         if distance:
             cmap = OrderedDict( [ objekt for objekt in cmap.items() if objekt[1]['distance'] < distance])
+
         if points:
             if include_cleared:
                 cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] < points or str(objekt[0]) in cleared.keys()] )
             else:
-                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points'  < points] and str(objekt[0]) not in cleared.keys()] )
+                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points']  < points and str(objekt[0]) not in cleared.keys()] )
 
         if min_points:
             if prefer_dangerous:
-                dangerous_items = self.parse_reports( ).items( )
-                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] > min_points  and objekt[0] not in dangerous_items ])
+                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] > min_points  and objekt[0] not in self.dangerous_items ])
 
             else:
                 cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] > min_points ])
-        if only_barbarians:
-            print 'only_barbarians not implemented yet'
-            pass
+
 
         #atlas = OrderedDict( [ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75 and
         #                                                              objekt[ 1 ][ 'distance' ] < 15 ] )
@@ -183,16 +183,14 @@ class FarmTargetHandler(object):
         """
         Just removes protected elements
         """
-        dangerous_items = self.parse_reports().items()
-        new_map = OrderedDict([ objekt for objekt in old_map.items() if objekt[0] not in dangerous_items ])
+        new_map = OrderedDict([ objekt for objekt in old_map.items() if objekt[0] not in self.dangerous_items ])
         return new_map
 
     def remove_under_attack( self, old_map ):
         """
         Just removes attacked villages
         """
-        under_attack = self.get_villages_under_attack()
-        new_map = OrderedDict( [ objekt for objekt in old_map.items( ) if objekt[ 0 ] not in under_attack ] )
+        new_map = OrderedDict( [ objekt for objekt in old_map.items( ) if objekt[ 0 ] not in self.under_attack ] )
         return new_map
 
     @staticmethod
@@ -220,12 +218,46 @@ class FarmTargetHandler(object):
                 #got, max = re.findall('\d+', loot)
                 #
 
+        def add_to_report_storage(data):
+            """
+            Diese funktion stellt sicher,
+            dass in report_storage immer die aktuellsten
+            daten (und nur diese!) gespeichert sind
+            """
+            report_storage = toolbox.init_shelve( 'report_storage' )
+
+            # um diese dorfid geht es hier. id ist ein python keyword
+            # und wird deswegen nicht verwendet
+            v_id = data['village_id']
+
+            # wenn es diese dorfid noch gar nicht gibt, ist der fall einfach...
+            if v_id not in report_storage.keys():
+                report_storage[v_id] = data
+                report_storage.close()
+                return
+
+            # wenn es diese dorfid so schon gibt, müssen die zeiten verglichen werden, um
+            # zu sehen welcher aktueller ist
+            if data['time'] > report_storage[v_id]['time']:
+                report_storage[v_id] = data
+                report_storage.close()
+                return
+
+        def get_dangerous_items():
+            """
+            Diese funktion gibt einfach alle items in report_storage zurück,
+            die nicht "green" sind.
+            """
+
+            report_storage = toolbox.init_shelve( 'report_storage' )
+            return {item: report_storage[item] for item in report_storage if report_storage[item]['color'] != 'green'}
+
+
         # Navigating to attack reports & making soup!
 
         # DECLARATIONS
-        dangerous = toolbox.init_shelve( 'reports_storage' )
-        report_id_to_deepscan = list()
-        cleared = toolbox.init_shelve( "cleared" )
+        cleared = toolbox.init_shelve( 'cleared' )
+        dangerous = ""
         # END OF DECLARATIONS
 
         # GET SOUP
@@ -234,40 +266,40 @@ class FarmTargetHandler(object):
         # END OF GET SOUP
 
         # PARSE TABLE
-        # Getting the right table (erster und letzter eintrag entfernen.
+        # Getting the right table (erster und letzter eintrag entfernen).
         rl = soup.find( 'table', id = 'report_list' ).find_all('tr')[1:-1]
 
+        # ITERATING OVER EVERY REPORT #
         for row in rl:
 
             # get color
-            color = re.findall( '/([a-z]+?)\.png', row.img.get('src') )[0]
+            color = str(re.findall( '/([a-z]+?)\.png', row.img.get('src') )[0])
 
             # get village_id
-            village_id = self.string_to_id(row.span.span.get_text( strip = True ))
+            village_id = str(self.string_to_id(row.span.span.get_text( strip = True )))
 
             # get a time_string & convert it
             time = toolbox.parse_time(row.find_all('td')[-1].string)
 
             # get report id
-            report_id = re.search(r'(\d+)', row.span.span.get("id")).group(0)
+            report_id = str(re.search(r'(\d+)', row.span.span.get("id")).group(0))
 
-            # we deepscan everything that is either not in our database, or that we have a
-            # newer report of.
-            if village_id not in dangerous.keys() or time > dangerous[str(village_id)]['time']:
-                if color != 'green':
+            # making a new dictionary
+            data = { 'report_id': report_id, 'color': color, 'village_id': village_id, 'time': time }
 
-                    data = {'report_id': report_id, 'color': color, 'village_id': village_id, 'time':time}
-                    print data
-                    dangerous[str(village_id)] = data
+            add_to_report_storage(data)
+        # END OF ITERATION #
 
 
-            if village_id in cleared.keys() and color != 'green':
-                cleared.pop( str( village_id ) )
-                cleared.sync( )
-                print "deleted village: {village_id} from cleared.".format( **locals( ) )
+        dangerous = get_dangerous_items()
+
+        for item in dangerous:
+            if item in cleared.keys():
+                cleared.pop(item)
+                cleared.sync()
+                print "deleted village: {item}.".format( **locals( ) )
 
         print cleared
-        dangerous.sync()
         return dangerous
             #print 'Village found with: {color}, {loot_status} ({x}|{y}) id = [{id_}]'.format(**locals())
 

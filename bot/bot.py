@@ -629,7 +629,7 @@ class Bot(BotContainer):
             light = self.units[ 'light' ][ 'available' ]
 
             # Get a map & only attack villages with less than 75 points & distance less than 1
-            atlas = self.fth.custom_map( points = 100, distance = 15 )
+            atlas = self.fth.custom_map( points = 100, distance = 20 )
             victim_gen = iter( atlas.values( ) )
 
             # farmgroups...
@@ -669,6 +669,7 @@ class Bot(BotContainer):
                 bash_victim = iter( atlas.values( ) ).next()
             except StopIteration:
                 print 'Axis have to sleep too :)'
+                return
 
             print_cstring("BASHING MODE ACTIVATED!", "magenta")
             self.slow_attack(target = bash_victim, units = {'axe': axe, 'ram': ram})
@@ -676,16 +677,10 @@ class Bot(BotContainer):
             cleared = tools.toolbox.init_shelve("cleared")
             cleared[str(bash_victim['village_id'])] = 1
             cleared.close()
-
-
-
-
-
             return 0
 
-
         if not can_farm():
-                return 0
+            return 0
 
         if is_noob():
             dummy_farm()
