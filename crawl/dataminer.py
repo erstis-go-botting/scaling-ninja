@@ -258,9 +258,7 @@ class FarmTargetHandler(object):
             old = datetime.timedelta(days=1, hours=12)
             now = datetime.datetime.now()
             dang = { item: dang[ item ] for item in dang if not now - dang[ item ][ 'time' ] > old}
-
             return dang
-
 
         # Navigating to attack reports & making soup!
 
