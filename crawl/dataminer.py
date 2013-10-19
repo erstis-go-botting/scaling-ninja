@@ -153,7 +153,7 @@ class FarmTargetHandler(object):
             if include_cleared:
                 cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] < points or str(objekt[0]) in cleared.keys()] )
             else:
-                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] < points] )
+                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points'  < points] and str(objekt[0]) not in cleared.keys()] )
 
         if min_points:
             if prefer_dangerous:
@@ -255,13 +255,18 @@ class FarmTargetHandler(object):
             # newer report of.
             if village_id not in dangerous.keys() or time > dangerous[str(village_id)]['time']:
                 if color != 'green':
+
                     data = {'report_id': report_id, 'color': color, 'village_id': village_id, 'time':time}
+                    print data
                     dangerous[str(village_id)] = data
-                    if village_id in cleared.keys():
-                        cleared.pop(village_id)
 
-                        print "deleted village: {village_id} from cleared.".format(**locals())
 
+            if village_id in cleared.keys() and color != 'green':
+                cleared.pop( str( village_id ) )
+                cleared.sync( )
+                print "deleted village: {village_id} from cleared.".format( **locals( ) )
+
+        print cleared
         dangerous.sync()
         return dangerous
             #print 'Village found with: {color}, {loot_status} ({x}|{y}) id = [{id_}]'.format(**locals())

@@ -98,7 +98,7 @@ class Bot(BotContainer):
         implementing basic trading...
         """
 
-        def do_trade(buy_item, sell_item, trader_count, sell_count=1000, buy_count=999, max_time = 5):
+        def do_trade(buy_item, sell_item, trader_count, sell_count=1000, buy_count=999, max_time = 2):
             """
             the function that actually does the trade
             """
@@ -293,7 +293,7 @@ class Bot(BotContainer):
             raise
         #endregion
 
-        do_trade(buy, sell, count, max_time=3)
+        do_trade(buy, sell, count, max_time=2)
 
         print_cstring('Buying {buy} for {sell} {count} times.'.format(buy=buy, sell = sell, count = count),'turq')
 
@@ -348,7 +348,7 @@ class Bot(BotContainer):
             Bestimmt ob wir in der kritischen Phase sind, in der wir lkavs
             priorisieren müssen.
             """
-            if self.buildings['stable'] == 3 and self.units['light']['all'] < 50:
+            if self.buildings['stable'] == 3 and self.units['light']['all'] < 60:
                 if self.units[ 'light' ][ 'all' ] > 0:
                     return 1
             return 0
@@ -365,12 +365,21 @@ class Bot(BotContainer):
 
         def default_recruit():
             """
-            the standard, if no special conditions apply
+            the standard, if no special conditions apply. stable > barracks > garage.
             """
             # Only build units if a building is under construction
-            if self.buildings['under_construction']:
+            quantity = (self.buildings[ 'wood' ] / 3) + 1
 
-                quantity = (self.buildings['wood'] / 3) + 1
+            try:
+                if self.units[ 'stable_time' ] < 10 * 60 or self.storage_critical:
+                    if self.buildings[ 'stable' ]:
+                        make_units( 'light', quantity / 3 )
+            except KeyError as error:
+                print "KeyError: {0}".format( error )
+
+            if self.buildings['under_construction']:
+                # TODO reevaluate try except statement
+
 
                 try:
                     if self.units['barracks_time'] < 10*60 or self.storage_critical:
@@ -380,23 +389,17 @@ class Bot(BotContainer):
                     print "KeyError: {0}".format(error)
 
                 try:
-                    if self.units['stable_time'] < 10*60 or self.storage_critical:
-                        if self.buildings[ 'stable' ]:
-                            make_units('light', quantity / 2)
-                except KeyError as error:
-                    print "KeyError: {0}".format(error)
-
-                try:
                     if self.units['garage_time'] < 10*60 or self.storage_critical:
                         if self.buildings[ 'garage' ]:
-                            make_units('ram', quantity / 2)
+                            make_units('ram', quantity / 4)
                 except KeyError as error:
                     print "KeyError: {0}".format(error)
 
 
         def start_light_production():
             """
-            Light production bis wir 50 haben.
+            Light production bis wir 60 haben.
+            Ignore everything else.
             """
 
             try:
@@ -666,7 +669,6 @@ class Bot(BotContainer):
                 bash_victim = iter( atlas.values( ) ).next()
             except StopIteration:
                 print 'Axis have to sleep too :)'
-                return
 
             print_cstring("BASHING MODE ACTIVATED!", "magenta")
             self.slow_attack(target = bash_victim, units = {'axe': axe, 'ram': ram})
