@@ -630,6 +630,7 @@ class Bot(BotContainer):
 
             # Get a map & only attack villages with less than 75 points & distance less than 1
             atlas = self.fth.custom_map( points = 100, distance = 20 )
+            print "found {count} potential targets.".format(count = len(atlas))
             victim_gen = iter( atlas.values( ) )
 
             # farmgroups...

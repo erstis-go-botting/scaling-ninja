@@ -4,9 +4,9 @@ __author__ = 'sudo'
 from bs4 import BeautifulSoup
 from json import loads
 import re
+import datetime
 from math import sqrt
 from collections import OrderedDict
-import datetime
 from tools import toolbox
 
 
@@ -21,8 +21,8 @@ class FarmTargetHandler(object):
 
         self.bot = bot
         self.raw_map = self.analyze_map()
-        self.dangerous_items = self.parse_reports().items()
         self.under_attack = self.get_villages_under_attack( )
+        self.dangerous_items = self.parse_reports( ).items( )
 
         # filter that map
         self.filtered_map = self.remove_noobprot(self.raw_map)
@@ -250,7 +250,16 @@ class FarmTargetHandler(object):
             """
 
             report_storage = toolbox.init_shelve( 'report_storage' )
-            return {item: report_storage[item] for item in report_storage if report_storage[item]['color'] != 'green'}
+            # all reports who are not green
+            dang = {item: report_storage[item] for item in report_storage if report_storage[item]['color'] != 'green'}
+
+            # sort out old reports
+            # alles, was älter als eineinhalb tage ist, ist "alt"
+            old = datetime.timedelta(days=1, hours=12)
+            now = datetime.datetime.now()
+            dang = { item: dang[ item ] for item in dang if not now - dang[ item ][ 'time' ] > old}
+
+            return dang
 
 
         # Navigating to attack reports & making soup!
@@ -343,11 +352,16 @@ class FarmTargetHandler(object):
         http://de99.die-staemme.de/game.php?village=17882&mode=commands&screen=overview_villages&type=attack
         """
         villages_under_attack = set()
-
-        self.bot.open('overview_villages&type=attack&mode=commands')
+        self.bot.open('overview_villages&mode=commands&type=attack&group=0&page=-1')
         soup = self.bot.browser.response().read()
         soup = BeautifulSoup(soup)
         reg = re.compile( r'.*info_command' )
+        length = len(soup.find_all(href = reg))
+
+        print "Hallo. Ich bin zu debugging zwecken hier. Eventuell funktioniert die Funktion"
+        print "'get_villages_under_attack' nicht, für eine grosse Anzahl Angriffe (mehr als 1000)"
+        print "Bitte ab und an manuell checken ob dieser wert stimmt: Anzahl Angriffe: {length}".format(length=length)
+        print "(Wenn gewisse Dörfer mehrmals angegriffen werden, stimmt dieser Wert nicht.)"
 
         for element in soup.find_all(href = reg):
             coordinate_helper = re.search( r'(\d+)[|](\d+)', element.get_text(strip = True) )
