@@ -87,8 +87,12 @@ class Bot(BotContainer):
         farm_building = '\t\t\tBauernhof<br />\n\t\t\tStufe' in html
         storage_building = '\t\t\tSpeicher<br />\n\t\t\tStufe' in html
 
-        if self.pop_critical and 'farm' in self.buildable and not farm_building:
-            build( 'farm' )
+        if self.pop_critical and not farm_building:
+            if 'farm' in self.buildable:
+                build( 'farm' )
+            else:
+                # saving for farm
+                return
         elif self.storage_critical and 'storage' in self.buildable and not storage_building:
             build('storage')
         elif self.next_building in self.buildable:
@@ -453,7 +457,6 @@ class Bot(BotContainer):
         except mechanize.ControlNotFoundError:
             pass
             # On some worlds there are no knights!
-
         self.browser.submit( )
         self.browser.select_form( nr = 0 )
         self.browser.submit( )
@@ -669,7 +672,7 @@ class Bot(BotContainer):
             if axe < 170 or ram < 5:
                 return
 
-            # if the main army is not home yer, we can abort
+            # if the main army is not home yet, we can abort
             if 2*axe < self.units['axe']['all']:
                 return
 
@@ -680,7 +683,6 @@ class Bot(BotContainer):
                 max_points = 120
             elif datetime.datetime.now() < datetime.datetime.now().replace(hour = 7):
                 max_points = 120
-
 
             atlas = self.fth.custom_map(points= max_points, min_points= min_points, distance=6, rm_dangerous=False, prefer_dangerous=True, include_cleared=False)
             try:

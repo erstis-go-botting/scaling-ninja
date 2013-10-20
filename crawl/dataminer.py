@@ -306,7 +306,9 @@ class FarmTargetHandler(object):
                 cleared.sync()
                 print "deleted village: {item}.".format( **locals( ) )
 
-        print cleared
+        # Don't ask why or how this works. Deep magic.
+        toolbox.print_cstring("Cleared villages: "+", ".join( map( str, cleared.keys()))+". Anzahl: "+str(len(cleared)), 'yellow')
+
         return dangerous
             #print 'Village found with: {color}, {loot_status} ({x}|{y}) id = [{id_}]'.format(**locals())
 
@@ -356,10 +358,11 @@ class FarmTargetHandler(object):
         reg = re.compile( r'.*info_command' )
         length = len(soup.find_all(href = reg))
 
-        print "Hallo. Ich bin zu debugging zwecken hier. Eventuell funktioniert die Funktion"
-        print "'get_villages_under_attack' nicht, für eine grosse Anzahl Angriffe (mehr als 1000)"
-        print "Bitte ab und an manuell checken ob dieser wert stimmt: Anzahl Angriffe: {length}".format(length=length)
-        print "(Wenn gewisse Dörfer mehrmals angegriffen werden, stimmt dieser Wert nicht.)"
+        if int(length) > 900:
+            print "Hallo. Ich bin zu debugging zwecken hier. Eventuell funktioniert die Funktion"
+            print "'get_villages_under_attack' nicht, für eine grosse Anzahl Angriffe (mehr als 1000)"
+            print "Bitte ab und an manuell checken ob dieser wert stimmt: Anzahl Angriffe: {length}".format(length=length)
+            print "(Wenn gewisse Dörfer mehrmals angegriffen werden, stimmt dieser Wert nicht.)"
 
         for element in soup.find_all(href = reg):
             coordinate_helper = re.search( r'(\d+)[|](\d+)', element.get_text(strip = True) )

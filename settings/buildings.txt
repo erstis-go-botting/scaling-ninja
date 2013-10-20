@@ -64,8 +64,9 @@ iron 16
 wood 19
 stable 10
 barracks 10
-iron 19
 main 15
+iron 19
+main 20
 iron 21
 stone 19
 garage 3
