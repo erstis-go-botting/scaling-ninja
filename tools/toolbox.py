@@ -169,11 +169,11 @@ def botprot(browser):
 
 
     browser.retrieve('http://'+world+'.die-staemme.de/human.png', 'ca.png')
-    time.sleep(5)
+    time.sleep(1)
     client = deathbycaptcha.SocketClient(user, pw)
     try:
         balance = client.get_balance()
-        print_cstring('DEATHBYCAPTCHA Balance: [%s]' % balance, 'red')
+        print_cstring('DEATHBYCAPTCHA Balance: [%s]' % balance, 'magenta')
         if int(balance) < 50:
             print 'BALANCE VERY LOW!!!'
 
@@ -181,7 +181,7 @@ def botprot(browser):
         if captcha:
         # The CAPTCHA was solved; captcha["captcha"] item holds its
             # numeric ID, and captcha["text"] item its text.
-            print_cstring( "CAPTCHA %s solved: %s" % (captcha["captcha"], captcha["text"]), 'red')
+            print_cstring( "I think I solved it: %s" % (captcha["text"]), 'red')
 
     # Access to DBC API denied, check your credentials and/or balance
     except deathbycaptcha.AccessDeniedException:
@@ -195,7 +195,13 @@ def botprot(browser):
     except TypeError:
         print 'TypeError'
     browser.submit()
-    print_cstring( 'Captcha solved, fuck the system :)', 'blue')
+
+    if "bot_check" in browser.response().read():
+        print_cstring('Bad captcha, trying again.', 'magenta')
+        botprot(browser)
+        client.report(captcha["captcha"])
+    else:
+        print_cstring( 'Captcha solved, fuck the system :)', 'green')
 
 
 def parse_time( time_string ):

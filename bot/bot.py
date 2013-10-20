@@ -640,11 +640,17 @@ class Bot(BotContainer):
             if groups > len( atlas ):
                 groups = len( atlas )
             # END OF DECLARATIONS -------------------------------------------------------------- #
-            color = cycle(['blue', 'turq'])
-            for i in range( groups ):
-                victim = victim_gen.next( )
-                print_cstring("[{cur}/{all}]: {string:>11} ({victim[x]}|{victim[y]})".format(cur = i+1, all = groups, string = 'Attacking', **locals()), color.next())
-                self.slow_attack( target = victim, units = { 'light': 4 } )
+            # ATTACKING!
+            if groups:
+                color = cycle(['blue', 'turq'])
+                print_cstring('#################################', color.next())
+                for i in range( groups ):
+                    victim = victim_gen.next( )
+                    helper_string = "[{cur}/{all}]:".format(cur = i+1, all = groups)
+                    print_cstring("# {helper_string:<9} Attacking ({victim[x]}|{victim[y]}) #".format(cur = i+1, all = groups, **locals()), color.next())
+                    self.slow_attack( target = victim, units = { 'light': 4 } )
+                print_cstring('#################################', color.next())
+            # END OF ATTACKING
             # END OF FARMING! ------------------------------------------------------------------ #
 
             # BASHING PART! -------------------------------------------------------------------- #
@@ -656,6 +662,9 @@ class Bot(BotContainer):
 
             axe = self.units[ 'axe' ][ 'available' ]
             ram = self.units[ 'ram' ][ 'available' ]
+            spies = self.units['spy']['available']
+            if spies > 20:
+                spies = 20
             # if we don't have enough units, we can abort
             if axe < 170 or ram < 5:
                 return
@@ -665,7 +674,7 @@ class Bot(BotContainer):
                 return
 
             min_points = 100
-            max_points = int(axe + ram * 2)
+            max_points = int(axe*0.7 + ram * 1)
             # only target weak targets during the night
             if datetime.datetime.now() > datetime.datetime.now().replace(hour = 22, minute=0):
                 max_points = 120
@@ -673,7 +682,7 @@ class Bot(BotContainer):
                 max_points = 120
 
 
-            atlas = self.fth.custom_map(points= max_points, min_points= min_points, distance=7, rm_dangerous=False, prefer_dangerous=True, include_cleared=False)
+            atlas = self.fth.custom_map(points= max_points, min_points= min_points, distance=6, rm_dangerous=False, prefer_dangerous=True, include_cleared=False)
             try:
                 bash_victim = iter( atlas.values( ) ).next()
             except StopIteration:
@@ -681,8 +690,8 @@ class Bot(BotContainer):
                 return
 
             print_cstring("BASHING MODE ACTIVATED!", "magenta")
-            print_cstring( "Attacking ({victim[x]}|{victim[y]}) with {victim[points]} points.".format(**locals()), "magenta")
-            self.slow_attack(target = bash_victim, units = {'axe': axe, 'ram': ram})
+            print_cstring( "Attacking ({bash_victim[x]}|{bash_victim[y]}) with {bash_victim[points]} points. ".format(**locals()), "magenta")
+            self.slow_attack(target = bash_victim, units = {'axe': axe, 'ram': ram, 'spy': spies})
 
             cleared = tools.toolbox.init_shelve("cleared")
             cleared[str(bash_victim['village_id'])] = 1

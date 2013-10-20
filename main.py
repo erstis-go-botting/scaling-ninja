@@ -5,9 +5,7 @@ __author__ = 'sudo'
 from bot.bot import Bot
 from tools.toolbox import print_cstring, wait_dont_sleep
 import thread
-from pprint import pprint
 import tools.toolbox
-from crawl.dataminer import FarmTargetHandler
 from ConfigParser import ConfigParser
 import time
 
