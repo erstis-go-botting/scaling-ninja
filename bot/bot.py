@@ -678,7 +678,7 @@ class Bot(BotContainer):
                 return
 
             min_points = 100
-            max_points = int(axe*0.7 + ram * 1)
+            max_points = int(axe + ram * 1)
             # only target weak targets during the night
             if datetime.datetime.now() > datetime.datetime.now().replace(hour = 22, minute=0):
                 max_points = 120
