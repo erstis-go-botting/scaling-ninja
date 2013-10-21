@@ -696,11 +696,6 @@ class Bot(BotContainer):
 
             distance = 6
 
-            # this is just a temporary fix to manual bash!
-            print 'MANUAL STUFF IN FARMFUNCTION ACTIVE. REMOVE THIS!!!'
-            if datetime.datetime.now( ) > datetime.datetime.now( ).replace( hour = 3 ):
-                return
-
             # only target weak targets during the night but in a slightly bigger radius
             if datetime.datetime.now() > datetime.datetime.now().replace(hour = 22, minute=0):
                 max_points /= 4
