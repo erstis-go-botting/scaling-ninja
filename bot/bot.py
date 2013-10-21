@@ -64,6 +64,8 @@ class Bot(BotContainer):
         access various information to determines if something
         should be constructed. and constructs it, if necessary.
         """
+        if self.buildings['under_construction']:
+            return
 
 
         def build(building):
