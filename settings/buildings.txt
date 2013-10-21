@@ -66,9 +66,14 @@ stable 10
 barracks 10
 main 15
 barracks 15
+main 18
+iron 20
+stone 20
+wood 20
 main 20
 iron 21
-stone 19
+stone 21
+wood 21
 garage 3
 stable 15
 barracks 20

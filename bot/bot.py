@@ -42,9 +42,9 @@ class Bot(BotContainer):
     def __init__(self, br):
         BotContainer.__init__(self, br=br)
 
-        # is the storage very full?
+        # storage is extremely cheap. don't let it overflow.
         for element in ['stone', 'wood', 'iron']:
-            if self.ressources[element] > self.ressources['storage'] * 0.85:
+            if self.ressources[element] > self.ressources['storage'] * 0.6:
                 self.storage_critical = 1
                 break
             else:
@@ -64,8 +64,7 @@ class Bot(BotContainer):
         access various information to determines if something
         should be constructed. and constructs it, if necessary.
         """
-        if self.buildings['under_construction']:
-            return
+
 
         def build(building):
             """
@@ -85,17 +84,21 @@ class Bot(BotContainer):
         self.open('main')
         html = self.browser.response().read()
         farm_building = '\t\t\tBauernhof<br />\n\t\t\tStufe' in html
+        if farm_building:
+            self.pop_critical = 0
+
         storage_building = '\t\t\tSpeicher<br />\n\t\t\tStufe' in html
 
-        if self.pop_critical and not farm_building:
+        if self.buildings['under_construction']:
+            return
+
+        if self.pop_critical:
             if 'farm' in self.buildable:
                 build( 'farm' )
-            else:
-                # saving for farm
-                return
-        elif self.storage_critical and 'storage' in self.buildable and not storage_building:
+        if self.storage_critical and 'storage' in self.buildable and not storage_building:
             build('storage')
-        elif self.next_building in self.buildable:
+
+        elif self.next_building in self.buildable and not self.pop_critical:
             build(self.next_building)
 
     def trade(self):
@@ -206,6 +209,15 @@ class Bot(BotContainer):
         #endregion
 
         # ---------------------------------------------------- ]
+
+        # CUSTOM STUFF
+
+        # wenn farm kritisch ist, muessen wir viel mehr lehm haben:
+
+        if self.pop_critical:
+            trading_ressources[ 'iron' ] = int(trading_ressources[ 'iron' ] * 2)
+            trading_ressources[ 'wood' ] = int(trading_ressources[ 'wood' ] * 1.1)
+            print 'we need a farm. trading for stone.'
 
         #region determine what to trade
 
@@ -678,14 +690,24 @@ class Bot(BotContainer):
                 return
 
             min_points = 100
-            max_points = int(axe*0.7 + ram * 1)
-            # only target weak targets during the night
-            if datetime.datetime.now() > datetime.datetime.now().replace(hour = 22, minute=0):
-                max_points = 120
-            elif datetime.datetime.now() < datetime.datetime.now().replace(hour = 7):
-                max_points = 120
+            max_points = int(axe*0.9 + ram * 0.9)
 
-            atlas = self.fth.custom_map(points= max_points, min_points= min_points, distance=6, rm_dangerous=False, prefer_dangerous=True, include_cleared=False)
+            distance = 6
+
+            # this is just a temporary fix to manual bash!
+            print 'MANUAL STUFF IN FARMFUNCTION ACTIVE. REMOVE THIS!!!'
+            if datetime.datetime.now( ) > datetime.datetime.now( ).replace( hour = 3 ):
+                return
+
+            # only target weak targets during the night but in a slightly bigger radius
+            if datetime.datetime.now() > datetime.datetime.now().replace(hour = 22, minute=0):
+                max_points /= 4
+                distance = 8
+            elif datetime.datetime.now() < datetime.datetime.now().replace(hour = 7):
+                max_points /= 4
+                distance = 8
+
+            atlas = self.fth.custom_map(points= max_points, min_points= min_points, distance=distance, rm_dangerous=False, prefer_dangerous=True, include_cleared=False)
             try:
                 bash_victim = iter( atlas.values( ) ).next()
             except StopIteration:

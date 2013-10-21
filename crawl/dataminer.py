@@ -150,7 +150,8 @@ class FarmTargetHandler(object):
         if rm_under_attack:
             cmap = self.remove_under_attack(cmap)
         if distance:
-            cmap = OrderedDict( [ objekt for objekt in cmap.items() if objekt[1]['distance'] < distance])
+            cmap = OrderedDict( [ objekt for objekt in cmap.items() if objekt[1]['distance'] <= distance])
+
 
         if points:
             if include_cleared:
@@ -160,11 +161,10 @@ class FarmTargetHandler(object):
 
         if min_points:
             if prefer_dangerous:
-                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] > min_points  and objekt[0] not in self.dangerous_items ])
+                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] > min_points or objekt[0] in self.dangerous_items ])
 
             else:
-                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] > min_points ])
-
+                cmap = OrderedDict( [ objekt for objekt in cmap.items( ) if objekt[ 1 ][ 'points' ] > min_points])
 
         #atlas = OrderedDict( [ objekt for objekt in atlas.items( ) if objekt[ 1 ][ 'points' ] < 75 and
         #                                                              objekt[ 1 ][ 'distance' ] < 15 ] )
