@@ -375,8 +375,9 @@ class Bot(BotContainer):
             # Only build units if a building is under construction
             quantity = (self.buildings[ 'wood' ] / 3) + 1
 
+
             try:
-                if self.units[ 'stable_time' ] < 20 * 60 or self.storage_critical:
+                if self.units[ 'stable_time' ] < 20 * 60:
                     if self.buildings[ 'stable' ]:
                         make_units( 'light', quantity / 3 )
             except KeyError as error:
@@ -389,7 +390,7 @@ class Bot(BotContainer):
                 try:
                     if self.units['barracks_time'] < 10*60 or self.storage_critical:
                         if self.buildings['barracks']:
-                            make_units('axe', quantity)
+                            make_units('axe', quantity/2+1)
                 except KeyError as error:
                     print "KeyError: {0}".format(error)
 

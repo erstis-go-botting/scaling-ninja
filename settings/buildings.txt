@@ -65,13 +65,13 @@ wood 19
 stable 10
 barracks 10
 main 15
-iron 19
+barracks 15
 main 20
 iron 21
 stone 19
 garage 3
 stable 15
-barracks 15
+barracks 20
 main 20
 
 market 10
