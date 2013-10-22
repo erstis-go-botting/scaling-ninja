@@ -64,9 +64,6 @@ class Bot(BotContainer):
         access various information to determines if something
         should be constructed. and constructs it, if necessary.
         """
-        if self.buildings['under_construction']:
-            return
-
 
         def build(building):
             """
@@ -695,11 +692,6 @@ class Bot(BotContainer):
             max_points = int(axe*0.9 + ram * 0.9)
 
             distance = 6
-
-            # this is just a temporary fix to manual bash!
-            print 'MANUAL STUFF IN FARMFUNCTION ACTIVE. REMOVE THIS!!!'
-            if datetime.datetime.now( ) > datetime.datetime.now( ).replace( hour = 3 ):
-                return
 
             # only target weak targets during the night but in a slightly bigger radius
             if datetime.datetime.now() > datetime.datetime.now().replace(hour = 22, minute=0):
