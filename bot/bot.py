@@ -12,6 +12,7 @@ import datetime
 from itertools import cycle
 import tools.toolbox
 from collections import OrderedDict
+import urllib
 
 # UNITTRAIN BARRACKS
 # url [h = actioncode]
@@ -434,6 +435,70 @@ class Bot(BotContainer):
         else:
             default_recruit()
 
+    def fast_attack(self, target, actioncode, template_id):
+        """
+        Farms really fast
+        needs farmmanager.
+        """
+        own_village=self.var_game_settings['village']['id']
+        target_id=target['village_id']
+
+        parameters={'target': target_id,
+                    'template_id': template_id,
+                    'source': own_village}
+        data=urllib.urlencode(parameters)
+
+        #'village=20466&mode=farm&ajaxaction=farm&h=bc96&json=1&screen=am_farm''
+        self.browser.open(
+            "http://de99.die-staemme.de/game.php?screen=am_farm&village={own_village}&mode=farm&ajaxaction=farm&h={actioncode}&json=1"
+            .format(
+                **locals()), data)
+
+    def combined_farm(self, target, actioncode, template_id, units):
+        """
+        Mit dem farmmanager kann man sehr schnell farmen, leider kann man mit ihm
+        keine Menschen angreifen. Deshalb diese Funktion.
+        """
+
+        # barb --> fast_attack
+        if target['barb']:
+            self.fast_attack(target, actioncode, template_id)
+
+        # human --> slow_attack
+        else:
+            self.slow_attack(target, units)
+
+
+    def set_get_template(self, units):
+        """
+        Setzt ein neues template beim farm-assistent und gibt dessen Nummer zurück
+        """
+        unitlist=['spear', 'axe', 'sword', 'spy', 'light', 'heavy']
+        not_defined_units=[u for u in unitlist if u not in units.keys()]
+        for u in not_defined_units:
+            units[u]=0
+
+            self.open("am_farm")
+
+        self.browser.select_form(nr=0)
+
+        self.browser.form["spear"]=str(units['spear'])
+        self.browser.form["axe"]=str(units['axe'])
+        self.browser.form["sword"]=str(units['sword'])
+        self.browser.form["spy"]=str(units['spy'])
+        self.browser.form["light"]=str(units['light'])
+        self.browser.form["heavy"]=str(units['heavy'])
+
+        self.browser.submit()
+
+        self.open("am_farm")
+        self.get_var_game_data(locale=True)
+
+        actioncode=self.var_game_settings['csrf']
+        templatenr=re.search(r'template_id=(\d+)', self.browser.response().read()).group(1)
+
+        return actioncode, templatenr
+
 
     def slow_attack(self, target, units):
         """
@@ -645,17 +710,26 @@ class Bot(BotContainer):
             light = self.units[ 'light' ][ 'available' ]
 
             # Get a map & only attack villages with less than 75 points & distance less than 1
-            atlas = self.fth.custom_map( points = 100, distance = 20 )
+            atlas=self.fth.custom_map(points=100, distance=30)
             print "found {count} potential targets.".format(count = len(atlas))
             victim_gen = iter( atlas.values( ) )
 
-            # farmgroups...
-            groups = light / 4
+            # fakebegrenzung kann in den weg kommen
+            point_minimum_lkav=int(self.var_game_settings['player']['points'])/300
+            light_to_send=4
+
+            if light_to_send<point_minimum_lkav:
+                light_to_send=point_minimum_lkav
+
+            groups=light/light_to_send
 
             if groups > len( atlas ):
                 groups = len( atlas )
             # END OF DECLARATIONS -------------------------------------------------------------- #
             # ATTACKING!
+            print_cstring('\nFarming with {light_to_send} LKavs:'.format(**locals()), 'green')
+            ac, tn=self.set_get_template({'light': light_to_send})
+
             if groups:
                 color = cycle(['blue', 'turq'])
                 print_cstring('#################################', color.next())
@@ -663,7 +737,8 @@ class Bot(BotContainer):
                     victim = victim_gen.next( )
                     helper_string = "[{cur}/{all}]:".format(cur = i+1, all = groups)
                     print_cstring("# {helper_string:<9} Attacking ({victim[x]}|{victim[y]}) #".format(cur = i+1, all = groups, **locals()), color.next())
-                    self.slow_attack( target = victim, units = { 'light': 4 } )
+                    self.combined_farm(target=victim, units={'light': light_to_send}, template_id=tn, actioncode=ac)
+                    #self.slow_attack( target = victim, units = { 'light': light_to_send } )
                 print_cstring('#################################', color.next())
             # END OF ATTACKING
             # END OF FARMING! ------------------------------------------------------------------ #
@@ -715,6 +790,13 @@ class Bot(BotContainer):
             cleared = tools.toolbox.init_shelve("cleared")
             cleared[str(bash_victim['village_id'])] = 1
             cleared.close()
+
+            # safaly mark cleared villages.
+            village_id=str(bash_victim['village_id'])
+            if not self.add_to_marked_group(village_id, "CLEAR"):
+                print 'GROUP CLEAR NOT FOUND. CREATING IT!'
+                self.mark_village(village_id, "CLEAR", red="127", blue="240", green="240")
+
             return 0
 
         if not can_farm():
@@ -800,12 +882,40 @@ class Bot(BotContainer):
     #    owned_villages()
     #    self.browser.open('http://{world}.die-staemme.de{url}'.format(world=self.world, url = village_id))
 
+    def mark_village(self, village_id, name, red, blue, green):
+        """
+a
+        """
 
+        print village_id
+        self.open("village_color&village_id={village_id}".format(**locals()))
 
+        self.browser.select_form(nr=0)
 
+        self.browser["name"]=name
+        self.browser["color_picker_r"]=red
+        self.browser["color_picker_b"]=blue
+        self.browser["color_picker_g"]=green
 
+        self.browser.submit()
 
+    def add_to_marked_group(self, village_id, groupname):
+        """
+        Fügt ein Dorf zu einer Gruppe der Karte hinzu
+        Falls diese Gruppe nicht existiert, wird 0 zurückgegeben.
+        """
 
+        self.open("village_color&village_id={village_id}".format(**locals()))
+        soup=BeautifulSoup(self.browser.response().read())
+        links=soup.find_all("a")
+
+        try:
+            grouplink=[element for element in links if element.string==groupname][0]
+        except IndexError:
+            return 0
+
+        self.browser.open('http://{self.world}.die-staemme.de'.format(**locals())+grouplink['href'])
+        return 1
 
 
 

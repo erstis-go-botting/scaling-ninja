@@ -66,6 +66,8 @@ stable 10
 barracks 10
 main 15
 barracks 15
+smith 12
+garage 3
 main 18
 iron 20
 stone 20

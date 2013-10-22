@@ -280,7 +280,7 @@ class FarmTargetHandler(object):
         for row in rl:
 
             # get color
-            color = str(re.findall( '/([a-z]+?)\.png', row.img.get('src') )[0])
+            color=str(re.findall('/([a-z_]+?)\.png', row.img.get('src'))[0])
 
             # get village_id
             village_id = str(self.string_to_id(row.span.span.get_text( strip = True )))

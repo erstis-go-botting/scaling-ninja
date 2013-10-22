@@ -94,12 +94,12 @@ class BotContainer(object):
                         value = 'parsing failure'
                     self.worldsettings[unicode(keyword)] = value
 
-    def open(self, place, village=None):
+    def open(self, place, data=None, village=None):
         """
         opens an url and tests for botprotection
         """
         if not village:
-            self.browser.open('http://{self.world}.die-staemme.de/game.php?screen={place}'.format(**locals()))
+            self.browser.open('http://{self.world}.die-staemme.de/game.php?screen={place}'.format(**locals()), data)
 
             if 'Botschutz' in self.browser.response().read():
                 toolbox.print_cstring('Botprotection strikes again. Trying to fix it.', 'magenta')
@@ -358,11 +358,13 @@ class BotContainer(object):
 
         self.buildings = buildings
 
-    def get_var_game_data(self):
+    def get_var_game_data(self, locale=False):
         """
         get's sexy schmexy var_game_data
         """
-        self.open('overview')
+        if not locale:
+            self.open('overview')
+
         htmllines = self.browser.response().readlines()
         vg = None
 

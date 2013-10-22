@@ -198,8 +198,9 @@ def botprot(browser):
 
     if "bot_check" in browser.response().read():
         print_cstring('Bad captcha, trying again.', 'magenta')
+        browser.open('http://'+world+'.die-staemme.de')
         botprot(browser)
-        client.report(captcha["captcha"])
+        #client.report(captcha["captcha"])
     else:
         print_cstring( 'Captcha solved, fuck the system :)', 'green')
 
