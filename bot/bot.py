@@ -409,7 +409,10 @@ class Bot(BotContainer):
                 try:
                     if self.units['garage_time'] < 10*60 or self.storage_critical:
                         if self.buildings[ 'garage' ]:
-                            make_units('ram', quantity / 4)
+                            if self.units['ram']['all']<150:
+                                make_units('ram', quantity/4)
+                            else:
+                                make_units('catapult', quantity/4)
                 except KeyError as error:
                     print "KeyError: {0}".format(error)
 
@@ -753,6 +756,8 @@ class Bot(BotContainer):
             axe = self.units[ 'axe' ][ 'available' ]
             ram = self.units[ 'ram' ][ 'available' ]
             spies = self.units['spy']['available']
+            cat=self.units['catapult']['available']
+
             if spies > 20:
                 spies = 20
             # if we don't have enough units, we can abort
@@ -779,13 +784,14 @@ class Bot(BotContainer):
             atlas = self.fth.custom_map(points= max_points, min_points= min_points, distance=distance, rm_dangerous=False, prefer_dangerous=True, include_cleared=False)
             try:
                 bash_victim = iter( atlas.values( ) ).next()
+
             except StopIteration:
                 print 'Axis have to sleep too :)'
                 return
 
             print_cstring("BASHING MODE ACTIVATED!", "magenta")
             print_cstring( "Attacking ({bash_victim[x]}|{bash_victim[y]}) with {bash_victim[points]} points. ".format(**locals()), "magenta")
-            self.slow_attack(target = bash_victim, units = {'axe': axe, 'ram': ram, 'spy': spies})
+            self.slow_attack(target=bash_victim, units={'axe': axe, 'ram': ram, 'spy': spies, 'catapult': cat})
 
             cleared = tools.toolbox.init_shelve("cleared")
             cleared[str(bash_victim['village_id'])] = 1
@@ -830,6 +836,10 @@ class Bot(BotContainer):
 
         table = soup_source_mail.find_all('table', class_='vis')[2]
         igm_all = table.find_all("td", colspan = "2")
+        if not igm_all[0].find('img'):
+            print 'circumventing mail bug'
+            table=soup_source_mail.find_all('table', class_='vis')[1]
+            igm_all=table.find_all("td", colspan="2")
 
         for link in igm_all:
             if 'new_mail.png' in link.find('img')['src']:

@@ -69,17 +69,10 @@ barracks 15
 smith 12
 garage 3
 main 18
-iron 20
-stone 20
-wood 20
 main 20
-iron 21
-stone 21
-wood 21
 garage 3
 stable 15
 barracks 20
-main 20
 
 market 10
 smith 20
