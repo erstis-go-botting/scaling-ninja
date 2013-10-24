@@ -93,6 +93,10 @@ class FarmTargetHandler(object):
                     # [0] = name, [1] = points, [2] = alliance_id, [3] = 0 if no noobprot, else string.
 
                     village_id = village[0]
+                    village_name=village[2]
+                    if not village_name:
+                        village_name='barbarian village'
+
                     player_id = village[4]
                     village_x = int(x_modifier) + int(base_x)
                     village_y = int(y_modifier) + int(base_y)
@@ -128,7 +132,8 @@ class FarmTargetHandler(object):
 
                         raw_map[village_id] = {'x': village_x, 'y': village_y, 'player_id': player_id,
                                                'points': int( player_points.replace('.', '') ), 'noobprot': noobprot,
-                                               'barb': barbarian, 'distance': distance, 'village_id': village_id}
+                                               'barb': barbarian, 'distance': distance,
+                                               'village_id': village_id, 'village_name': village_name}
 
         # sort for distance
         return OrderedDict( sorted( raw_map.items( ), key = lambda t: t[ 1 ][ 'distance' ] ) )
@@ -325,7 +330,6 @@ class FarmTargetHandler(object):
         id_ = self.conversion_coord_to_id( x = x, y = y )
 
         return id_
-
 
     def conversion_coord_to_id(self, x, y):
         """

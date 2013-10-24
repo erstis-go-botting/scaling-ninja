@@ -712,17 +712,17 @@ class Bot(BotContainer):
             # units...
             light = self.units[ 'light' ][ 'available' ]
 
-            # Get a map & only attack villages with less than 75 points & distance less than 1
-            atlas=self.fth.custom_map(points=100, distance=30)
-            print "found {count} potential targets.".format(count = len(atlas))
-            victim_gen = iter( atlas.values( ) )
-
             # fakebegrenzung kann in den weg kommen
             point_minimum_lkav=int(self.var_game_settings['player']['points'])/300
             light_to_send=4
-
             if light_to_send<point_minimum_lkav:
                 light_to_send=point_minimum_lkav
+            max_points=light_to_send*25
+
+            # Get a map & only attack villages with less than 75 points & distance less than 1
+            atlas=self.fth.custom_map(points=max_points, distance=30)
+            print "found {count} potential targets.".format(count=len(atlas))
+            victim_gen=iter(atlas.values())
 
             groups=light/light_to_send
 
@@ -735,15 +735,18 @@ class Bot(BotContainer):
 
             if groups:
                 color = cycle(['blue', 'turq'])
-                print_cstring('#################################', color.next())
+                print_cstring('##########################################################', color.next())
                 for i in range( groups ):
                     victim = victim_gen.next( )
                     helper_string = "[{cur}/{all}]:".format(cur = i+1, all = groups)
-                    print_cstring("# {helper_string:<9} Attacking ({victim[x]}|{victim[y]}) #".format(cur = i+1, all = groups, **locals()), color.next())
+
+                    print_cstring("# {helper_string:<8} Attacking {village_name:<25} ({victim[x]}|{victim[y]}) #".format(
+                        cur=i+1, all=groups, village_name=victim['village_name'].encode('utf-8'), **locals()), color.next())
+
                     self.combined_farm(target=victim, units={'light': light_to_send}, template_id=tn, actioncode=ac)
                     #self.slow_attack( target = victim, units = { 'light': light_to_send } )
-                print_cstring('#################################', color.next())
-            # END OF ATTACKING
+                print_cstring('##########################################################', color.next())
+                # END OF ATTACKING
             # END OF FARMING! ------------------------------------------------------------------ #
 
             # BASHING PART! -------------------------------------------------------------------- #
@@ -769,7 +772,7 @@ class Bot(BotContainer):
                 return
 
             min_points = 100
-            max_points = int(axe*0.9 + ram * 0.9)
+            max_points=int(axe*0.9+ram)
 
             distance = 6
 
@@ -790,7 +793,10 @@ class Bot(BotContainer):
                 return
 
             print_cstring("BASHING MODE ACTIVATED!", "magenta")
-            print_cstring( "Attacking ({bash_victim[x]}|{bash_victim[y]}) with {bash_victim[points]} points. ".format(**locals()), "magenta")
+            village_name=bash_victim['village_name'].encode("utf-8")
+            print_cstring(
+                "Attacking {village_name} ({bash_victim[x]}|{bash_victim[y]}) with {bash_victim[points]} points. ".format(**locals()),
+                "magenta")
             self.slow_attack(target=bash_victim, units={'axe': axe, 'ram': ram, 'spy': spies, 'catapult': cat})
 
             cleared = tools.toolbox.init_shelve("cleared")
