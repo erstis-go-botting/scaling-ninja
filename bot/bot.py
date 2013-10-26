@@ -786,7 +786,11 @@ class Bot(BotContainer):
 
             atlas = self.fth.custom_map(points= max_points, min_points= min_points, distance=distance, rm_dangerous=False, prefer_dangerous=True, include_cleared=False)
             try:
-                bash_victim = iter( atlas.values( ) ).next()
+                bash_gen=iter(atlas.values())
+                bash_victim=bash_gen.next()
+                if "TwinTower"==bash_victim['village_name']:
+                    print 'manual ram stuff'
+                    bash_victim=bash_gen.next()
 
             except StopIteration:
                 print 'Axis have to sleep too :)'

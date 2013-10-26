@@ -19,6 +19,8 @@ class FarmTargetHandler(object):
         Get that juicy data container class
         """
 
+        self.temp_map=OrderedDict()
+
         self.bot = bot
         self.raw_map = self.analyze_map()
         self.under_attack = self.get_villages_under_attack( )
@@ -29,7 +31,7 @@ class FarmTargetHandler(object):
         self.filtered_map = self.remove_dangerous(self.filtered_map)
         self.filtered_map = self.remove_under_attack(self.filtered_map)
 
-    def analyze_map(self):
+    def analyze_map(self, goto_x=None, goto_y=None, recursion_counter=0):
 
         """
         Analyzes the mapz
@@ -38,9 +40,12 @@ class FarmTargetHandler(object):
         """
 
         x, y = self.bot.var_game_settings['village']['coord'].split('|')
-        own_coordinates = {'x': x, 'y': y}
+        own_coordinates={'x': int(x), 'y': int(y)}
 
-        goto = 'http://{self.bot.world}.die-staemme.de/game.php?x={x}&y={y}&screen=map#{x};{y}'.format(**locals())
+        if not goto_x and not goto_y:
+            goto_x, goto_y=x, y
+
+        goto='http://{self.bot.world}.die-staemme.de/game.php?x={goto_x}&y={goto_y}&screen=map#{goto_x};{goto_y}'.format(**locals())
         self.bot.browser.open(goto)
         htmllines = self.bot.browser.response().readlines()
 
@@ -55,11 +60,9 @@ class FarmTargetHandler(object):
             raise
 
         prefech = loads(prefech.split(' = ', 1)[1][:-2])
-        raw_map = OrderedDict()
 
         for superlist in prefech:
             base_x, base_y = superlist['data']['x'], superlist['data']['y']
-
             sublist = superlist['data']['villages']
             # some of those sublists are dictionaries, some of them are lists.
             # we need them to be of the same format for proper parsing
@@ -119,24 +122,43 @@ class FarmTargetHandler(object):
                         # 1 is more usefull than a string, which we would need to parse for time
                         noobprot = 1
 
-                    if village_id in raw_map.keys():
+                    if village_id in self.temp_map.keys():
                         # there seeme to be a lot of duplicates in this list, which is possibly a bug
                         # of DS. doesn't harm though, so we are just ignoring it.
                         pass
+
                     else:
                         player_points = player_points.replace( '.', '' )
                         distance = self.distance(own_coordinates, {'x': village_x, 'y': village_y})
+
                         # Don't include self :P
                         if distance == 0.0:
                             continue
 
-                        raw_map[village_id] = {'x': village_x, 'y': village_y, 'player_id': player_id,
-                                               'points': int( player_points.replace('.', '') ), 'noobprot': noobprot,
+                        self.temp_map[village_id]={'x': village_x, 'y': village_y, 'player_id': player_id,
+                                                   'points': int( player_points.replace('.', '') ), 'noobprot': noobprot,
                                                'barb': barbarian, 'distance': distance,
                                                'village_id': village_id, 'village_name': village_name}
 
+
+        # balancing the map.
+        # crazy stuff
+        max_right=max({self.temp_map[element]['x']-own_coordinates['x'] for element in self.temp_map})
+        max_left=min({self.temp_map[element]['x']-own_coordinates['x'] for element in self.temp_map})
+        max_up=max({self.temp_map[element]['y']-own_coordinates['y'] for element in self.temp_map})
+        max_down=min({self.temp_map[element]['y']-own_coordinates['y'] for element in self.temp_map})
+
+        tester={max_right: 'max_right', max_left: 'max_left', max_up: 'max_up', max_down: 'max_down'}
+        weakness=min(tester, key=abs)
+        if abs(weakness)<50 and recursion_counter<2:
+            if tester[weakness]=='max_left' or tester[weakness]=='max_right':
+                self.analyze_map(own_coordinates['x']+2*weakness, own_coordinates['y'], recursion_counter=recursion_counter+1)
+            else:
+                self.analyze_map(own_coordinates['x'], own_coordinates['y']+2*weakness, recursion_counter=recursion_counter+1)
+
+
         # sort for distance
-        return OrderedDict( sorted( raw_map.items( ), key = lambda t: t[ 1 ][ 'distance' ] ) )
+        return OrderedDict(sorted(self.temp_map.items(), key=lambda t: t[1]['distance']))
 
     def custom_map(self, points = False, distance = False, rm_noobprot = True, rm_dangerous = True, include_cleared = True,
                    prefer_dangerous = True, rm_under_attack = True, min_points = 0):
