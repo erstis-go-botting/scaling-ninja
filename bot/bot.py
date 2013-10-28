@@ -726,10 +726,10 @@ class Bot(BotContainer):
             light_to_send=4
             if light_to_send<point_minimum_lkav:
                 light_to_send=point_minimum_lkav
-            max_points=light_to_send*25
+            lk_max_points=light_to_send*25
 
             # Get a map & only attack villages with less than 75 points & distance less than 1
-            atlas=self.fth.custom_map(points=max_points, distance=30)
+            atlas=self.fth.custom_map(points=lk_max_points, distance=30)
             print "found {count} potential targets.".format(count=len(atlas))
             victim_gen=iter(atlas.values())
 
@@ -778,7 +778,7 @@ class Bot(BotContainer):
             if 2*axe < self.units['axe']['all']:
                 return
 
-            min_points = 100
+            min_points=lk_max_points
             max_points=int(axe*0.9+ram)
 
             distance=7
