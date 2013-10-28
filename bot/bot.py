@@ -385,11 +385,16 @@ class Bot(BotContainer):
             the standard, if no special conditions apply. stable > barracks > garage.
             """
             # Only build units if a building is under construction
-            quantity = (self.buildings[ 'wood' ] / 3) + 1
 
+            # just a modificator to adapt to various game phases
+            mod=int(self.var_game_settings['player']['points'])/1000+1
+            if mod>4:
+                mod=5
+
+            quantity=mod*2
 
             try:
-                if self.units[ 'stable_time' ] < 20 * 60:
+                if self.units['stable_time']<10*60*mod:
                     if self.buildings[ 'stable' ]:
                         make_units( 'light', quantity / 3 )
             except KeyError as error:
@@ -398,9 +403,8 @@ class Bot(BotContainer):
             if self.buildings['under_construction']:
                 # TODO reevaluate try except statement
 
-
                 try:
-                    if self.units['barracks_time'] < 10*60 or self.storage_critical:
+                    if self.units['barracks_time']<10*60*mod or self.storage_critical:
                         if self.buildings['barracks']:
                             make_units('axe', quantity/2+1)
                 except KeyError as error:
@@ -465,7 +469,12 @@ class Bot(BotContainer):
 
         # barb --> fast_attack
         if target['barb']:
-            self.fast_attack(target, actioncode, template_id)
+            if self.var_game_settings['player']['farm_manager']:
+                self.fast_attack(target, actioncode, template_id)
+            # Fastfarm doesn't work without FarmManager
+            else:
+                print 'Buy a farmmanager! It will speed things up ;)'
+                self.slow_attack(target, units)
 
         # human --> slow_attack
         else:
@@ -761,8 +770,6 @@ class Bot(BotContainer):
             spies = self.units['spy']['available']
             cat=self.units['catapult']['available']
 
-            if spies > 20:
-                spies = 20
             # if we don't have enough units, we can abort
             if axe < 170 or ram < 5:
                 return
@@ -774,21 +781,25 @@ class Bot(BotContainer):
             min_points = 100
             max_points=int(axe*0.9+ram)
 
-            distance = 6
+            distance=7
 
             # only target weak targets during the night but in a slightly bigger radius
             if datetime.datetime.now() > datetime.datetime.now().replace(hour = 22, minute=0):
                 max_points /= 4
+                if max_points>500:
+                    max_points=500
                 distance = 8
             elif datetime.datetime.now() < datetime.datetime.now().replace(hour = 7):
                 max_points /= 4
+                if max_points>500:
+                    max_points=500
                 distance = 8
 
             atlas = self.fth.custom_map(points= max_points, min_points= min_points, distance=distance, rm_dangerous=False, prefer_dangerous=True, include_cleared=False)
             try:
                 bash_gen=iter(atlas.values())
                 bash_victim=bash_gen.next()
-                if "TwinTower"==bash_victim['village_name']:
+                if "1575921120"==bash_victim['player_id']:
                     print 'manual ram stuff'
                     bash_victim=bash_gen.next()
 
