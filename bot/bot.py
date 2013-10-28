@@ -390,6 +390,8 @@ class Bot(BotContainer):
             mod=int(self.var_game_settings['player']['points'])/1000+1
             if mod>4:
                 mod=5
+            if self.storage_critical:
+                mod=mod*3
 
             quantity=mod*2
 
@@ -779,7 +781,7 @@ class Bot(BotContainer):
                 return
 
             min_points=lk_max_points
-            max_points=int(axe*0.9+ram)
+            max_points=int(axe*0.8+ram)
 
             distance=7
 
@@ -800,7 +802,7 @@ class Bot(BotContainer):
                 bash_gen=iter(atlas.values())
                 bash_victim=bash_gen.next()
                 if "1575921120"==bash_victim['player_id']:
-                    print 'manual ram stuff'
+                    print 'manual ram stuff [dont attack my lovely deffer]'
                     bash_victim=bash_gen.next()
 
             except StopIteration:

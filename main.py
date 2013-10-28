@@ -15,6 +15,7 @@ def main(br):
     print(time.asctime())
     soul = Bot(br)
     soul.construct()
+
     soul.recruit()
     soul.trade()
     soul.farm()

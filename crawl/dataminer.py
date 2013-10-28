@@ -392,6 +392,10 @@ class FarmTargetHandler(object):
 
         for element in soup.find_all(href = reg):
             coordinate_helper = re.search( r'(\d+)[|](\d+)', element.get_text(strip = True) )
+            if not coordinate_helper:
+                continue
+                # Dies passiert, wenn angriffe manuell umbenannt werden zB von "Angriff auf Barbarendorf (627|498) K46  Umbenennen"
+                # zu "adelsgeschlecht, yay"
 
             x = coordinate_helper.group(1)
             y = coordinate_helper.group(2)
