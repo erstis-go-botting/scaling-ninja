@@ -224,3 +224,21 @@ def parse_time( time_string ):
     time_object = datetime.datetime( day = day, month = month, year = year, hour= hour, minute= minute )
 
     return time_object
+
+
+def get_setting(argument1, argument2):
+    """
+    Returns none if nothing is found,
+    else the setting.
+    """
+    config=ConfigParser.ConfigParser()
+    config.read(r'settings\settings.ini')
+
+    # fetch the credentials.
+    try:
+        setting=config.get(argument1, argument2)
+    except ConfigParser.NoOptionError, ConfigParser.NoSectionError:
+        print 'Invalid arguments [{argument1}] {argument2}. Defaulting to standard settings.'.format(**locals())
+        setting=None
+
+    return setting

@@ -1,6 +1,9 @@
 simple = BotContainer()
 simple.init()
 
+print self.buildings
+{'under_construction': 3, u'stone': 22, u'hide': 2, u'iron': 20, u'farm': 28, u'storage': 23, u'church_f': 1, u'village': 20466, u'smith': 20, u'garage': 5, u'wood': 19, u'place': 1, u'market': 13, u'statue': 0, u'church': 0, u'snob': 1, u'barracks': 17, u'main': 20, u'stable': 14, u'wall': 0}
+
 print simple.ressources
 {'stone': 145, 'pop_now': 62, 'storage': 1000, 'wood': 113, 'pop_max': 240, 'iron': 221}
 

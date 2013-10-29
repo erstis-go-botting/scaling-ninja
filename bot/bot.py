@@ -66,6 +66,10 @@ class Bot(BotContainer):
         should be constructed. and constructs it, if necessary.
         """
 
+        if tools.toolbox.get_setting('control', 'do_construct')=='0':
+            print 'skip constructing.'
+            return
+
         def build(building):
             """
             constructs building
@@ -105,6 +109,11 @@ class Bot(BotContainer):
         """
         implementing basic trading...
         """
+
+        if tools.toolbox.get_setting('control', 'do_trade')=='0':
+            print 'skip trading.'
+            return
+
 
         def do_trade(buy_item, sell_item, trader_count, sell_count=1000, buy_count=999, max_time = 2):
             """
@@ -213,8 +222,9 @@ class Bot(BotContainer):
         # CUSTOM STUFF
 
         # wenn farm kritisch ist, muessen wir viel mehr lehm haben:
+        # ausser wir überspringen derzeit die buildphase
 
-        if self.pop_critical:
+        if self.pop_critical and tools.toolbox.get_setting('control', 'do_construct')!='0':
             trading_ressources[ 'iron' ] = int(trading_ressources[ 'iron' ] * 2)
             trading_ressources[ 'wood' ] = int(trading_ressources[ 'wood' ] * 1.1)
             print 'we need a farm. trading for stone.'
@@ -326,6 +336,11 @@ class Bot(BotContainer):
         - Nicht viele Ressourcen vorhanden sind und schon eine längere Rekrutierschleife besteht.
 
         """
+        if tools.toolbox.get_setting('control', 'do_recruit')=='0':
+            print 'skip recruit.'
+            return
+
+
         def make_units(unit, quantity):
             """
             Just a little function which tries to recruit units
@@ -416,9 +431,9 @@ class Bot(BotContainer):
                     if self.units['garage_time'] < 10*60 or self.storage_critical:
                         if self.buildings[ 'garage' ]:
                             if self.units['ram']['all']<150:
-                                make_units('ram', quantity/4)
+                                make_units('ram', quantity/8+1)
                             else:
-                                make_units('catapult', quantity/4)
+                                make_units('catapult', quantity/8+1)
                 except KeyError as error:
                     print "KeyError: {0}".format(error)
 
@@ -563,6 +578,10 @@ class Bot(BotContainer):
         #nod = [objekt for objekt in od.items() if objekt[1]['points'] < 100 and objekt[1]['barb']]
         #ai.slow_attack(nod[2][1], {'light': 10})
         """
+
+        if tools.toolbox.get_setting('control', 'do_farm')=='0':
+            print 'skip farming.'
+            return
 
         def can_farm():
             """
@@ -741,22 +760,40 @@ class Bot(BotContainer):
                 groups = len( atlas )
             # END OF DECLARATIONS -------------------------------------------------------------- #
             # ATTACKING!
-            print_cstring('\nFarming with {light_to_send} LKavs:'.format(**locals()), 'green')
-            ac, tn=self.set_get_template({'light': light_to_send})
+            print_cstring('\nFarming with 5/{light_to_send} LKavs:'.format(**locals()), 'green')
 
-            if groups:
-                color = cycle(['blue', 'turq'])
-                print_cstring('##########################################################', color.next())
-                for i in range( groups ):
-                    victim = victim_gen.next( )
-                    helper_string = "[{cur}/{all}]:".format(cur = i+1, all = groups)
+            barb_send=5 if light_to_send>5 else light_to_send
+            ac, tn=self.set_get_template({'light': barb_send})
 
-                    print_cstring("# {helper_string:<8} Attacking {village_name:<25} ({victim[x]}|{victim[y]}) #".format(
-                        cur=i+1, all=groups, village_name=victim['village_name'].encode('utf-8'), **locals()), color.next())
+            color=cycle(['blue', 'turq'])
+            while light>=light_to_send:
+                victim=victim_gen.next()
+                if victim['barb']:
+                    send=5 if light_to_send>5 else light_to_send
+                else:
+                    send=light_to_send
 
-                    self.combined_farm(target=victim, units={'light': light_to_send}, template_id=tn, actioncode=ac)
-                    #self.slow_attack( target = victim, units = { 'light': light_to_send } )
-                print_cstring('##########################################################', color.next())
+                helper_string="[{cur}/{all}]:".format(cur=light, all=self.units['light']['available'])
+                print_cstring("# {helper_string:<10} Attacking {village_name:<25} ({victim[x]}|{victim[y]}) #".format(
+                    village_name=victim['village_name'].encode('utf-8'), **locals()), color.next())
+
+                self.combined_farm(target=victim, units={'light': send}, template_id=tn, actioncode=ac)
+                light-=send
+
+
+                #if groups:
+                #    color = cycle(['blue', 'turq'])
+                #    print_cstring('##########################################################', color.next())
+                #    for i in range( groups ):
+                #        victim = victim_gen.next( )
+                #        helper_string = "[{cur}/{all}]:".format(cur = i+1, all = groups)
+                #
+                #        print_cstring("# {helper_string:<8} Attacking {village_name:<25} ({victim[x]}|{victim[y]}) #".format(
+                #            cur=i+1, all=groups, village_name=victim['village_name'].encode('utf-8'), **locals()), color.next())
+                #
+                #        self.combined_farm(target=victim, units={'light': light_to_send}, template_id=tn, actioncode=ac)
+                #        #self.slow_attack( target = victim, units = { 'light': light_to_send } )
+                #    print_cstring('##########################################################', color.next())
                 # END OF ATTACKING
             # END OF FARMING! ------------------------------------------------------------------ #
 
@@ -950,10 +987,32 @@ a
         self.browser.open('http://{self.world}.die-staemme.de'.format(**locals())+grouplink['href'])
         return 1
 
+    def make_coins(self):
+        """
+        Makes coins, yay
+        """
 
+        if tools.toolbox.get_setting('control', 'make_coins')=='0':
+            return
+        if not tools.toolbox.get_setting('control', 'make_coins'):
+            return
+        if not self.buildings['snob']:
+            return
 
+        print 'Woah, will münzen prägen!!!'
 
+        self.open("snob")
+        soup=BeautifulSoup(self.browser.response().read())
 
+        link=[s for s in soup.find_all("a") if "action=coin" in s.get("href")]
+        if not link:
+            return
+
+        link=link[0].get("href")
+
+        self.browser.open('http://{self.world}.die-staemme.de{link}'.format(**locals()))
+
+        print 'made a coin! :)'
 
 
 
