@@ -889,17 +889,22 @@ class Bot(BotContainer):
         A function to read ingame mails...
         """
 
+
+        # TODO FIX THIS!
         # linklist is a list of urls we need to visit!
         linklist = []
         self.open('mail')
         soup_source_mail = BeautifulSoup(self.browser.response().read())
 
-        table = soup_source_mail.find_all('table', class_='vis')[2]
+
+        table = [t for t in soup_source_mail.find_all('table', class_='vis') if "mail.png" in str(t) if 'screen=info_player">' in str(t)][0]
+        print table
+        #table = soup_source_mail.find_all('table', class_='vis')[3]
         igm_all = table.find_all("td", colspan = "2")
-        if not igm_all[0].find('img'):
-            print 'circumventing mail bug'
-            table=soup_source_mail.find_all('table', class_='vis')[1]
-            igm_all=table.find_all("td", colspan="2")
+        #if not igm_all[0].find('img'):
+        #    print 'circumventing mail bug'
+        #    table=soup_source_mail.find_all('table', class_='vis')[1]
+        #    igm_all=table.find_all("td", colspan="2")
 
         for link in igm_all:
             if 'new_mail.png' in link.find('img')['src']:

@@ -11,7 +11,7 @@ print simple.units
 {'spy': 'None', 'spear': {'available': 10, 'all': 10}, 'ram': 'None', 'archer': {'available': 0, 'all': 0}, 'sword': {'available': 10, 'all': 10}, 'axe': {'available': 0, 'all': 0}}
 
 print simple.worldsettings
-{u'Paladin': 0, u'Archer': 1, u'Miliz': 0, u'Kirche': 0}
+{u'Paladin': 0, u'Archer': 1, u'Miliz': 0, u'Kirche': 1}
 
 ############################################################
 
