@@ -100,14 +100,13 @@ class BotContainer(object):
         """
         if not village:
             self.browser.open('http://{self.world}.die-staemme.de/game.php?screen={place}'.format(**locals()), data)
-
-            if 'Botschutz' in self.browser.response().read():
-                toolbox.print_cstring('Botprotection strikes again. Trying to fix it.', 'magenta')
-                self.handle_botprotection(self, origin=place)
         else:
-            # TODO implement the open function for multiple villages
-            print 'NOT IMPLEMENTED YET'
-            raise
+            self.browser.open('http://{self.world}.die-staemme.de/game.php?screen={place}&village={village}'.format(**locals()), data)
+
+        if 'Botschutz' in self.browser.response().read():
+            toolbox.print_cstring('Botprotection strikes again. Trying to fix it.', 'magenta')
+            self.handle_botprotection(self, origin=place)
+
 
     @staticmethod
     def handle_botprotection(self, origin=None):
@@ -383,3 +382,15 @@ class BotContainer(object):
     def close(self):
         # save our statistics
         pickle.dump(self.statistics, open('juicy_stats', 'wb'))
+
+    def get_village_ids(self):
+        """"
+        just returns a set cointaining all village ids
+        """
+
+        self.open("overview_villages&mode=groups")
+        soup=BeautifulSoup(self.browser.response().read())
+        linklist=[element for element in soup.find_all("a") if element.get("href") if
+                  re.search(r'(\d+)&amp;screen=overview">', str(element))]
+        ids={re.search(r'(\d+)', e.get("href")).group(0): e.span.string for e in linklist}
+        return ids

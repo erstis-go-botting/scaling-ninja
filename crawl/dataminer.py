@@ -133,7 +133,10 @@ class FarmTargetHandler(object):
 
                         # Don't include self :P
                         if distance == 0.0:
-                            continue
+                            self.own_village={'x': village_x, 'y': village_y, 'player_id': player_id,
+                                              'points': int(player_points.replace('.', '')), 'noobprot': noobprot,
+                                              'barb': barbarian, 'distance': distance, 'village_id': village_id,
+                                              'village_name': village_name, 'village_points': int(village[3].replace('.', ''))}
 
                         self.temp_map[village_id]={'x': village_x, 'y': village_y, 'player_id': player_id,
                                                    'points': int( player_points.replace('.', '') ), 'noobprot': noobprot,
@@ -156,6 +159,9 @@ class FarmTargetHandler(object):
             else:
                 self.analyze_map(own_coordinates['x'], own_coordinates['y']+2*weakness, recursion_counter=recursion_counter+1)
 
+
+        #rm self
+        self.temp_map=OrderedDict([objekt for objekt in self.temp_map.items() if objekt[1]['player_id']!=self.own_village['player_id']])
 
         # sort for distance
         return OrderedDict(sorted(self.temp_map.items(), key=lambda t: t[1]['distance']))
@@ -334,7 +340,7 @@ class FarmTargetHandler(object):
                 print "deleted village: {item}.".format( **locals( ) )
 
         # Don't ask why or how this works. Deep magic.
-        toolbox.print_cstring("Cleared villages: "+", ".join( map( str, cleared.keys()))+". Anzahl: "+str(len(cleared)), 'yellow')
+        #toolbox.print_cstring("Cleared villages: "+", ".join( map( str, cleared.keys()))+". Anzahl: "+str(len(cleared)), 'yellow')
 
         return dangerous
             #print 'Village found with: {color}, {loot_status} ({x}|{y}) id = [{id_}]'.format(**locals())

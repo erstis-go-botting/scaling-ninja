@@ -11,6 +11,7 @@ import mechanize
 import datetime
 from itertools import cycle
 import tools.toolbox
+import tools.settinggen
 from collections import OrderedDict
 import urllib
 
@@ -42,6 +43,9 @@ class Bot(BotContainer):
     """
     def __init__(self, br):
         BotContainer.__init__(self, br=br)
+
+        # 0 = not initialized yet
+        self.village_ids=0
 
         # storage is extremely cheap. don't let it overflow.
         for element in ['stone', 'wood', 'iron']:
@@ -535,7 +539,7 @@ class Bot(BotContainer):
         :param target: Expects a village dictionary, like those from FarmTargetHandler.raw_map
         :param units: Expects a dictionary with units in it like {'axe': 10, 'spear': 100}
         """
-
+        print target
         # prevent errors from accessing keys, that do not exist yet
         unitlist = ['spear', 'axe', 'sword', 'spy', 'light', 'ram', 'catapult', 'knight', 'heavy']
         not_defined_units = [u for u in unitlist if u not in units.keys()]
@@ -743,11 +747,12 @@ class Bot(BotContainer):
             light = self.units[ 'light' ][ 'available' ]
 
             # fakebegrenzung kann in den weg kommen
-            point_minimum_lkav=int(self.var_game_settings['player']['points'])/300
+            point_minimum_lkav=self.fth.own_village['village_points']/300
             light_to_send=4
             if light_to_send<point_minimum_lkav:
                 light_to_send=point_minimum_lkav
             lk_max_points=light_to_send*25
+            lk_max_points=200 if lk_max_points>200 else lk_max_points
 
             # Get a map & only attack villages with less than 75 points & distance less than 1
             atlas=self.fth.custom_map(points=lk_max_points, distance=30)
@@ -890,21 +895,13 @@ class Bot(BotContainer):
         """
 
 
-        # TODO FIX THIS!
-        # linklist is a list of urls we need to visit!
         linklist = []
         self.open('mail')
         soup_source_mail = BeautifulSoup(self.browser.response().read())
 
 
         table = [t for t in soup_source_mail.find_all('table', class_='vis') if "mail.png" in str(t) if 'screen=info_player">' in str(t)][0]
-        print table
-        #table = soup_source_mail.find_all('table', class_='vis')[3]
         igm_all = table.find_all("td", colspan = "2")
-        #if not igm_all[0].find('img'):
-        #    print 'circumventing mail bug'
-        #    table=soup_source_mail.find_all('table', class_='vis')[1]
-        #    igm_all=table.find_all("td", colspan="2")
 
         for link in igm_all:
             if 'new_mail.png' in link.find('img')['src']:
@@ -925,7 +922,7 @@ class Bot(BotContainer):
                 author = element.string
                 break
 
-            print_cstring('New Message read. Title: {betreff}, From: {author}'.format(betreff = betreff.strip(),
+            print_cstring('New Message read. Title: {betreff}. From: {author}'.format(betreff=betreff.strip(),
                                                                                       author = author))
 
         if not linklist:
@@ -1019,9 +1016,77 @@ a
 
         print 'made a coin! :)'
 
+    def multiplevillages(self):
+        """
+        handles crazy multiple villages stuff
+        """
+
+        if self.var_game_settings['player']['villages']=='1':
+            return 0
+
+        village_id_name=self.get_village_ids()
+        sgenerator=tools.settinggen.SettingGen()
+
+        self.village_ids=village_id_name.keys()
+
+        # Generate settings with default values if there is a new village
+        for id_ in village_id_name.keys():
+            if not sgenerator.config.has_section(str(id_)):
+                sgenerator.generate_skeleton(id_, village_id_name[id_])
+                print_cstring('New village found: {id_}. Generated an entry with default values.'.format(**locals()), 'green')
+
+        print 'Villages: ', self.var_game_settings['player']['villages']
+        return 1
+
+    def multiplevillages_handler(self):
+        """
+        do's everything for multiple villages
+        """
+        if len(self.village_ids)<2:
+            print 'What am I even doing here? GTFO multiplevillages_handler'
+            exit()
+
+        for village in self.village_ids:
+            print 'VILLAGE: {village}'.format(village=village)
+            self.open("overview", village=village)
+
+            self.refresh_all()
+            self.refresh_map()
+            sg=tools.settinggen.SettingGen()
+
+            if sg.config.get(village, 'do_construct')=='1':
+                self.construct()
+
+            if sg.config.get(village, 'do_recruit')=='1':
+                self.recruit()
+
+            if sg.config.get(village, 'do_trade')=='1':
+                self.trade()
+
+            if sg.config.get(village, 'do_farm')=='1':
+                self.farm()
+
+            if sg.config.get(village, 'make_coins')=='1':
+                self.make_coins()
+
+            self.close()
 
 
+    def botloop(self):
+        """
+        DO EVERYTHING!!!!
+        """
+        self.construct()
+        self.recruit()
+        self.trade()
+        self.farm()
+        self.make_coins()
+        self.close()
 
 
-
-
+    def refresh_map(self):
+        """
+        Creates a new map
+        """
+        del self.fth
+        self.fth=FarmTargetHandler(self)

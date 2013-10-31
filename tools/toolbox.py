@@ -73,7 +73,7 @@ def is_logged_in(browser):
     #    print 'yuck'
 
     if '<img class="p_main"' in browser.response( ).read( ):
-        print_cstring( 'Already logged in.', 'green' )
+        print_cstring('Logged in.', 'green')
         return 1
     else:
         print_cstring( 'Currently not logged in.', 'red' )
@@ -97,12 +97,11 @@ def login(browser):
     print_cstring( 'Trying to login...', 'yellow' )
     browser.open( 'http://www.die-staemme.de/index.php?action=login&server_%s' % world, data )
 
-    if '<img class="p_main"' in browser.response( ).read( ):
-        print_cstring( 'Logged in.'.format( serv = world ), 'green' )
+    if is_logged_in(browser):
         return 1
     else:
-        print_cstring( 'Failure. Login failed on Server: {serv}'.format( serv = world ), 'red' )
         return 0
+
 
 def print_startup_information():
     """
@@ -140,7 +139,6 @@ def init_shelve(filename):
     #if not os.path.exists(resulting_path):
 
     return my_shelve
-
 
 def botprot(browser):
     """
