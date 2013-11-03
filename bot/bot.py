@@ -423,15 +423,17 @@ class Bot(BotContainer):
                 except KeyError as error:
                     print "KeyError: {0}".format(error)
 
-                try:
+                if self.var_game_settings['player']['villages']=='1':
                     if self.units['garage_time']<10*60 or self.storage_critical:
                         if self.buildings['garage']:
                             if self.units['ram']['all']<150:
                                 make_units('ram', quantity/8+1)
                             else:
                                 make_units('catapult', quantity/8+1)
-                except KeyError as error:
-                    print "KeyError: {0}".format(error)
+                else:
+                    if self.units['garage_time']<10*60 or self.storage_critical:
+                        if self.buildings['garage'] and self.units['ram']['all']<250:
+                            make_units('ram', quantity/8+1)
 
 
         def start_light_production():
@@ -531,7 +533,7 @@ class Bot(BotContainer):
         :param target: Expects a village dictionary, like those from FarmTargetHandler.raw_map
         :param units: Expects a dictionary with units in it like {'axe': 10, 'spear': 100}
         """
-        print target
+
         # prevent errors from accessing keys, that do not exist yet
         unitlist=['spear', 'axe', 'sword', 'spy', 'light', 'ram', 'catapult', 'knight', 'heavy']
         not_defined_units=[u for u in unitlist if u not in units.keys()]
@@ -834,7 +836,7 @@ class Bot(BotContainer):
             try:
                 bash_gen=iter(atlas.values())
                 bash_victim=bash_gen.next()
-                if "1575921120"==bash_victim['player_id']:
+                if "1575921120"==bash_victim['player_id'] or '1575889856'==bash_victim['player_id']:
                     print 'manual ram stuff [dont attack my lovely deffer]'
                     bash_victim=bash_gen.next()
 
