@@ -751,20 +751,24 @@ class Bot(BotContainer):
             print "found {count} potential targets.".format(count=len(atlas))
             victim_gen=iter(atlas.values())
 
-            groups=light/light_to_send
 
-            if groups>len(atlas):
-                groups=len(atlas)
                 # END OF DECLARATIONS -------------------------------------------------------------- #
             # ATTACKING!
-            print_cstring('\nFarming with 5/{light_to_send} LKavs:'.format(**locals()), 'green')
+            print_cstring('Farming with 5/{light_to_send} LKavs:'.format(**locals()), 'green')
 
             barb_send=5 if light_to_send>5 else light_to_send
             ac, tn=self.set_get_template({'light': barb_send})
 
             color=cycle(['blue', 'turq'])
             while light>=light_to_send:
-                victim=victim_gen.next()
+                try:
+                    victim=victim_gen.next()
+                except StopIteration:
+                    print 'sir farm alot strikes again.'
+                    atlas=self.fth.custom_map(points=lk_max_points, distance=30, rm_under_attack=False)
+                    victim_gen=iter(atlas.values())
+                    victim=victim_gen.next()
+
                 if victim['barb']:
                     send=5 if light_to_send>5 else light_to_send
                 else:
