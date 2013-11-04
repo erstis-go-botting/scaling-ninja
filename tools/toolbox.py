@@ -7,6 +7,7 @@ import mechanize
 import urllib
 import ConfigParser
 import os
+import math
 import shelve
 import deathbycaptcha
 import re
@@ -62,6 +63,7 @@ def make_browser():
     browser.set_handle_robots( False )
     return browser
 
+
 def is_logged_in(browser):
     config = ConfigParser.ConfigParser( )
     config.read( r'settings\settings.ini' )
@@ -78,6 +80,7 @@ def is_logged_in(browser):
     else:
         print_cstring( 'Currently not logged in.', 'red' )
         return 0
+
 
 def login(browser):
     config = ConfigParser.ConfigParser()
@@ -123,6 +126,7 @@ def print_startup_information():
     print_cstring('#'*35)
     print ''
 
+
 def init_shelve(filename):
     """
     expects a valid filename as input
@@ -139,6 +143,7 @@ def init_shelve(filename):
     #if not os.path.exists(resulting_path):
 
     return my_shelve
+
 
 def botprot(browser):
     """
@@ -207,17 +212,43 @@ def parse_time( time_string ):
     """
     takes something like
     u'13.10.13 20:46'
+    "am 07.11. um 07:54:06 Uhr"
+    "morgen um ..."
 
     returns a datetime object
     """
-    split_time = re.findall( '\d+', time_string )
+    split_time=re.findall('\d+', time_string)
+    if "heute um" in time_string:
+        day=datetime.datetime.today().day
+        year=datetime.datetime.today().year
+        month=datetime.datetime.today().month
 
-    day = int(split_time[0])
-    month = int(split_time[1])
-    year = int( '20' + split_time[ 2 ] )
+        hour=int(split_time[0])
+        minute=int(split_time[1])
 
-    hour = int( split_time[ 3 ] )
-    minute = int( split_time[ 4 ] )
+    elif "morgen um" in time_string:
+        day=datetime.datetime.today().day+1
+        year=datetime.datetime.today().year
+        month=datetime.datetime.today().month
+
+        hour=int(split_time[0])
+        minute=int(split_time[1])
+
+    elif "am" in time_string:
+        day=int(split_time[0])
+        month=int(split_time[1])
+        year=year=datetime.datetime.today().year
+
+        hour=int(split_time[2])
+        minute=int(split_time[3])
+
+    else:
+        day=int(split_time[0])
+        month=int(split_time[1])
+        year=int('20'+split_time[2])
+
+        hour=int(split_time[3])
+        minute=int(split_time[4])
 
     time_object = datetime.datetime( day = day, month = month, year = year, hour= hour, minute= minute )
 
@@ -240,3 +271,11 @@ def get_setting(argument1, argument2):
         setting=None
 
     return setting
+
+
+def calculate_distance(x1, y1, x2, y2):
+    """
+    just returns the distance
+    """
+    x1, x2, y1, y2=int(x1), int(x2), int(y1), int(y2)
+    return math.sqrt((x1-x2)**2+(y1-y2)**2)

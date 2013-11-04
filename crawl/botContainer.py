@@ -63,7 +63,6 @@ class BotContainer(object):
 
         # Fetch all data from die-stämme (ressources, units usw...)
         self.refresh_all()
-        self.get_next_building()
 
     def parse_worldsettings(self):
         """
@@ -134,6 +133,7 @@ class BotContainer(object):
         self.get_units()
         self.get_var_game_data()
         self.get_buildings()
+        self.get_next_building()
 
     def get_next_building(self):
         """

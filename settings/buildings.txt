@@ -66,6 +66,8 @@ stable 10
 main 15
 smith 12
 garage 3
+wall 10
+
 main 18
 main 20
 garage 3
@@ -79,6 +81,7 @@ snob 1
 wall 20
 
 barracks 15
+stable 15
 
 iron 22
 stone 22
@@ -88,8 +91,16 @@ iron 24
 wood 24
 stone 24
 
+barracks 23
+stable 27
+
 stone 27
 wood 27
 iron 27
-barracks 20
-stable 15
+
+barracks 25
+stable 20
+
+stone 30
+wood 30
+iron 30

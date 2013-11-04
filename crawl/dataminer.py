@@ -383,10 +383,12 @@ class FarmTargetHandler(object):
         Obtains results from:
         http://de99.die-staemme.de/game.php?village=17882&mode=commands&screen=overview_villages&type=attack
         """
+
         villages_under_attack=set()
         self.bot.open('overview_villages&mode=commands&type=attack&group=0&page=-1')
         soup=self.bot.browser.response().read()
         soup=BeautifulSoup(soup)
+
         reg=re.compile(r'.*info_command')
         length=len(soup.find_all(href=reg))
 
@@ -396,19 +398,41 @@ class FarmTargetHandler(object):
             print "Bitte ab und an manuell checken ob dieser wert stimmt: Anzahl Angriffe: {length}".format(length=length)
             print "(Wenn gewisse Dörfer mehrmals angegriffen werden, stimmt dieser Wert nicht.)"
 
-        for element in soup.find_all(href=reg):
-            coordinate_helper=re.search(r'(\d+)[|](\d+)', element.get_text(strip=True))
-            if not coordinate_helper:
+        #for element in soup.find_all(href=reg):
+        #    tempcord=re.search(r'(\d+)[|](\d+)', element.get_text(strip=True))
+        #    if not tempcord:
+        #        continue
+        #        # Dies passiert, wenn angriffe manuell umbenannt werden zB von "Angriff auf Barbarendorf (627|498) K46  Umbenennen"
+        #        # zu "adelsgeschlecht, yay"
+        #
+        #    x=tempcord.group(1)
+        #    y=tempcord.group(2)
+        #
+        #    id_=self.conversion_coord_to_id(x=x, y=y)
+        #
+        #    villages_under_attack.add(id_)
+
+        elements=soup.find_all("tr", class_=re.compile('nowrap.*'))
+
+        for element in elements:
+            tempcord=re.search(r'(\d+)[|](\d+)', element.span.span.get_text(strip=True))
+            if not tempcord:
                 continue
                 # Dies passiert, wenn angriffe manuell umbenannt werden zB von "Angriff auf Barbarendorf (627|498) K46  Umbenennen"
                 # zu "adelsgeschlecht, yay"
 
-            x=coordinate_helper.group(1)
-            y=coordinate_helper.group(2)
+            id_=self.conversion_coord_to_id(x=tempcord.group(1), y=tempcord.group(2))
 
-            id_=self.conversion_coord_to_id(x=x, y=y)
+            tempcordown=re.search(r'(\d+)[|](\d+)', element.a.get_text(strip=True))
+            distance=toolbox.calculate_distance(tempcordown.group(1), tempcordown.group(2), tempcord.group(1), tempcord.group(2))
 
-            villages_under_attack.add(id_)
+            # lkavs have a speed of 10 minutes / tile. lkavs are the only relevant unit here.
+            walktime=datetime.timedelta(minutes=distance*10)
+            arrival=toolbox.parse_time(element.find_all("td")[2].get_text(strip=True))
+            senttime=arrival-walktime
+
+            if datetime.datetime.today()-senttime<datetime.timedelta(hours=1):
+                villages_under_attack.add(id_)
 
         return villages_under_attack
 

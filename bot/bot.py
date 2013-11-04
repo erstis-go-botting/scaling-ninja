@@ -14,6 +14,7 @@ import tools.toolbox
 import tools.settinggen
 from collections import OrderedDict
 import urllib
+import ConfigParser
 
 # UNITTRAIN BARRACKS
 # url [h = actioncode]
@@ -47,6 +48,8 @@ class Bot(BotContainer):
 
         # 0 = not initialized yet
         self.village_ids=0
+        # Dieser wert wird gebraucht, falls mehrere Dörfer vorhanden sind
+        self.current_village=None
 
         # storage is extremely cheap. don't let it overflow.
         for element in ['stone', 'wood', 'iron']:
@@ -89,7 +92,6 @@ class Bot(BotContainer):
             except LinkNotFoundError:
                 print_cstring('fuck that shit, not enough ressources to build [%s]'%building, 'red')
 
-        # making sure to build storage & farm only when needed.
         self.open('main')
         html=self.browser.response().read()
         farm_building='\t\t\tBauernhof<br />\n\t\t\tStufe' in html
@@ -106,6 +108,7 @@ class Bot(BotContainer):
                 build('farm')
         if self.storage_critical and 'storage' in self.buildable and not storage_building:
             build('storage')
+
 
         elif self.next_building in self.buildable and not self.pop_critical:
             build(self.next_building)
@@ -361,15 +364,15 @@ class Bot(BotContainer):
             try:
                 self.browser.select_form(nr=0)
             except mechanize.FormNotFoundError:
-                print "{unit} control not found".format(unit=unit)
                 return
+
             try:
                 self.browser.form[unit]=str(quantity)
                 self.browser.submit()
                 print_cstring("Training ["+str(quantity)+"] "+unit+"s", 'turq')
                 self.statistics['units_built'][unit]+=int(quantity)
             except mechanize.ControlNotFoundError:
-                print "{unit} control not found".format(unit=unit)
+                return
 
         def need_to_start_light_production():
             """
@@ -409,7 +412,7 @@ class Bot(BotContainer):
             try:
                 if self.units['stable_time']<10*60*mod:
                     if self.buildings['stable']:
-                        make_units('light', quantity/3)
+                        make_units('light', quantity/3+1)
             except KeyError as error:
                 print "KeyError: {0}".format(error)
 
@@ -435,7 +438,6 @@ class Bot(BotContainer):
                         if self.buildings['garage'] and self.units['ram']['all']<250:
                             make_units('ram', quantity/8+1)
 
-
         def start_light_production():
             """
             Light production bis wir 60 haben.
@@ -447,15 +449,44 @@ class Bot(BotContainer):
             except KeyError as error:
                 pass
 
-        unit_quest()
+        def deff_recruit():
+            """
+            For multiple villages.
+            """
+            if not self.buildings['under_construction']:
+                return
 
-        # lights between 1 and 50
-        if need_to_start_light_production():
-            start_light_production()
+            mod=int(self.fth.own_village['village_points'])/1000+1
+            if mod>4:
+                mod=5
+            if self.storage_critical:
+                mod*=3
 
-        # else: defaulting.
+            if self.units['stable_time']<10*60*mod or self.storage_critical:
+                make_units('heavy', mod/3+1)
+
+            if self.units['barracks_time']<10*60*mod or self.storage_critical:
+                make_units('spear', mod+1)
+
+        if not self.current_village:
+            unit_quest()
+
+            # lights between 1 and 50
+            if need_to_start_light_production():
+                start_light_production()
+
+            # else: defaulting.
+            else:
+                default_recruit()
         else:
-            default_recruit()
+            sg=tools.settinggen.SettingGen()
+
+            if sg.config.get(self.current_village, 'dorftyp')=='off':
+                default_recruit()
+            elif sg.config.get(self.current_village, 'dorftyp')=='deff':
+                deff_recruit()
+            else:
+                print 'Invalid typ for', self.current_village, sg.config.get(self.current_village, 'dorftyp')
 
     def fast_attack(self, target, actioncode, template_id):
         """
@@ -495,7 +526,6 @@ class Bot(BotContainer):
         else:
             self.slow_attack(target, units)
 
-
     def set_get_template(self, units):
         """
         Setzt ein neues template beim farm-assistent und gibt dessen Nummer zurück
@@ -525,7 +555,6 @@ class Bot(BotContainer):
         templatenr=re.search(r'template_id=(\d+)', self.browser.response().read()).group(1)
 
         return actioncode, templatenr
-
 
     def slow_attack(self, target, units):
         """
@@ -754,9 +783,16 @@ class Bot(BotContainer):
 
                 # END OF DECLARATIONS -------------------------------------------------------------- #
             # ATTACKING!
-            print_cstring('Farming with 5/{light_to_send} LKavs:'.format(**locals()), 'green')
+            try:
+                barb_send=self.config.get('control', 'split')
+            except ConfigParser.NoOptionError:
+                print 'specify an integer under [control] -> split (in settings.ini)'
+                print 'defaulting to 5'
+                barb_send=5
 
-            barb_send=5 if light_to_send>5 else light_to_send
+            print_cstring('Farming with {barb_send}/{light_to_send} LKavs:'.format(**locals()), 'green')
+
+            barb_send=barb_send if light_to_send>barb_send else light_to_send
             ac, tn=self.set_get_template({'light': barb_send})
 
             color=cycle(['blue', 'turq'])
@@ -770,7 +806,7 @@ class Bot(BotContainer):
                     victim=victim_gen.next()
 
                 if victim['barb']:
-                    send=5 if light_to_send>5 else light_to_send
+                    send=barb_send if light_to_send>barb_send else light_to_send
                 else:
                     send=light_to_send
 
@@ -780,30 +816,6 @@ class Bot(BotContainer):
 
                 self.combined_farm(target=victim, units={'light': send}, template_id=tn, actioncode=ac)
                 light-=send
-
-
-                #if groups:
-                #    color = cycle(['blue', 'turq'])
-                #    print_cstring('##########################################################', color.next())
-                #    for i in range( groups ):
-                #        victim = victim_gen.next( )
-                #        helper_string = "[{cur}/{all}]:".format(cur = i+1, all = groups)
-                #
-                #        print_cstring("# {helper_string:<8} Attacking {village_name:<25} ({victim[x]}|{victim[y]}) #".format(
-                #            cur=i+1, all=groups, village_name=victim['village_name'].encode('utf-8'), **locals()), color.next())
-                #
-                #        self.combined_farm(target=victim, units={'light': light_to_send}, template_id=tn, actioncode=ac)
-                #        #self.slow_attack( target = victim, units = { 'light': light_to_send } )
-                #    print_cstring('##########################################################', color.next())
-                # END OF ATTACKING
-            # END OF FARMING! ------------------------------------------------------------------ #
-
-            # BASHING PART! -------------------------------------------------------------------- #
-            # if we are low in troops, we can't bash. we will farm instead.
-            # this causes strange bugs. check it. low priority
-            #if self.units['axe']['all'] < 200 or self.units['ram']['all'] < 5:
-            #    light_farm()
-            #    return
 
             axe=self.units['axe']['available']
             ram=self.units['ram']['available']
@@ -885,7 +897,6 @@ class Bot(BotContainer):
         else:
             ram_farm()
 
-
     def igm_reader(self):
         """
         A function to read ingame mails...
@@ -922,32 +933,6 @@ class Bot(BotContainer):
 
         if not linklist:
             print_cstring('No message found.')
-
-
-    #def switch_village(self):
-    #    """
-    #    A function to switch bewtween all owned villages.
-    #    """
-    #    def owned_villages():
-    #        """
-    #        Gets a set with all Id's of the players villages.
-    #        """
-    #
-    #        own_villages = set()
-    #        self.open('overview')
-    #        soup_source_html =BeautifulSoup(self.browser.response().read())
-    #        table = soup_source_html.find_all('table')[21]
-    #        #print table
-    #        span = table.find_all('span')[0]
-    #        print span
-    #        village_url = span.find("a")["href"]
-    #        print village_url
-    #        own_villages.append(village_url)
-    #        print len(own_villages)
-    #        return own_villages
-    #
-    #    owned_villages()
-    #    self.browser.open('http://{world}.die-staemme.de{url}'.format(world=self.world, url = village_id))
 
     def mark_village(self, village_id, name, red, blue, green):
         """
@@ -1047,6 +1032,7 @@ a
 
             self.refresh_all()
             self.refresh_map()
+            self.current_village=village
             sg=tools.settinggen.SettingGen()
 
             if sg.config.get(village, 'do_construct')=='1':
@@ -1066,7 +1052,6 @@ a
 
             self.close()
 
-
     def botloop(self):
         """
         DO EVERYTHING!!!!
@@ -1077,7 +1062,6 @@ a
         self.farm()
         self.make_coins()
         self.close()
-
 
     def refresh_map(self):
         """
