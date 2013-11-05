@@ -16,14 +16,6 @@ from collections import OrderedDict
 import urllib
 import ConfigParser
 
-# UNITTRAIN BARRACKS
-# url [h = actioncode]
-# village=1979&ajaxaction=train&h=7852&mode=train&screen=barracks
-# form data
-# units%5Bspear%5D=2
-
-# ATTACK
-
 
 class Bot(BotContainer):
     """
@@ -51,21 +43,7 @@ class Bot(BotContainer):
         # Dieser wert wird gebraucht, falls mehrere Dörfer vorhanden sind
         self.current_village=None
 
-        # storage is extremely cheap. don't let it overflow.
-        for element in ['stone', 'wood', 'iron']:
-            if self.ressources[element]>self.ressources['storage']*0.6:
-                self.storage_critical=1
-                break
-            else:
-                self.storage_critical=0
-            #
         self.fth=FarmTargetHandler(self)
-
-        # is the farm very full?
-        if self.ressources['pop_now']>self.ressources['pop_max']*0.8:
-            self.pop_critical=1
-        else:
-            self.pop_critical=0
 
     def construct(self):
 
@@ -339,7 +317,7 @@ class Bot(BotContainer):
             print 'skip recruit.'
             return
 
-
+        print 'sc', self.storage_critical
         def make_units(unit, quantity):
             """
             Just a little function which tries to recruit units
@@ -417,7 +395,6 @@ class Bot(BotContainer):
                 print "KeyError: {0}".format(error)
 
             if self.buildings['under_construction']:
-                # TODO reevaluate try except statement
 
                 try:
                     if self.units['barracks_time']<10*60*mod or self.storage_critical:
@@ -784,7 +761,7 @@ class Bot(BotContainer):
                 # END OF DECLARATIONS -------------------------------------------------------------- #
             # ATTACKING!
             try:
-                barb_send=self.config.get('control', 'split')
+                barb_send=int(self.config.get('control', 'split'))
             except ConfigParser.NoOptionError:
                 print 'specify an integer under [control] -> split (in settings.ini)'
                 print 'defaulting to 5'
@@ -806,7 +783,7 @@ class Bot(BotContainer):
                     victim=victim_gen.next()
 
                 if victim['barb']:
-                    send=barb_send if light_to_send>barb_send else light_to_send
+                    send=barb_send
                 else:
                     send=light_to_send
 

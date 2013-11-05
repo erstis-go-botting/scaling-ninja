@@ -423,7 +423,7 @@ class FarmTargetHandler(object):
 
             id_=self.conversion_coord_to_id(x=tempcord.group(1), y=tempcord.group(2))
 
-            tempcordown=re.search(r'(\d+)[|](\d+)', element.a.get_text(strip=True))
+            tempcordown=re.search(r'(\d+)[|](\d+)', element.find_all("a", href=re.compile(r".*info_village"))[0].get_text(strip=True))
             distance=toolbox.calculate_distance(tempcordown.group(1), tempcordown.group(2), tempcord.group(1), tempcord.group(2))
 
             # lkavs have a speed of 10 minutes / tile. lkavs are the only relevant unit here.

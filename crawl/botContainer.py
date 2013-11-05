@@ -60,6 +60,7 @@ class BotContainer(object):
         self.var_game_settings = dict()
         self.next_building = str()
         self.parse_worldsettings()
+        self.pop_critical, self.storage_critical = 0, 0
 
         # Fetch all data from die-stämme (ressources, units usw...)
         self.refresh_all()
@@ -128,12 +129,23 @@ class BotContainer(object):
         self.var_game_data
         self.buildings
         """
-        # TODO write this function. please.
         self.get_ressources()
         self.get_units()
         self.get_var_game_data()
         self.get_buildings()
         self.get_next_building()
+
+        for element in ['stone', 'wood', 'iron']:
+            if self.ressources[element]>self.ressources['storage']*0.6:
+                self.storage_critical=1
+                break
+            else:
+                self.storage_critical=0
+
+        if self.ressources['pop_now']>self.ressources['pop_max']*0.8:
+            self.pop_critical=1
+        else:
+            self.pop_critical=0
 
     def get_next_building(self):
         """
