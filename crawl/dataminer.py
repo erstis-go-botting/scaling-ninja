@@ -1,12 +1,14 @@
 # coding=utf-8
 __author__='sudo'
 
-from bs4 import BeautifulSoup
 from json import loads
 import re
 import datetime
 from math import sqrt
 from collections import OrderedDict
+
+from bs4 import BeautifulSoup
+
 from tools import toolbox
 
 
@@ -382,6 +384,8 @@ class FarmTargetHandler(object):
 
         Obtains results from:
         http://de99.die-staemme.de/game.php?village=17882&mode=commands&screen=overview_villages&type=attack
+
+        if the farmgroup was sent to the destination more than a hour ago, it will not be marked as under attack!
         """
 
         villages_under_attack=set()
@@ -398,19 +402,6 @@ class FarmTargetHandler(object):
             print "Bitte ab und an manuell checken ob dieser wert stimmt: Anzahl Angriffe: {length}".format(length=length)
             print "(Wenn gewisse Dörfer mehrmals angegriffen werden, stimmt dieser Wert nicht.)"
 
-        #for element in soup.find_all(href=reg):
-        #    tempcord=re.search(r'(\d+)[|](\d+)', element.get_text(strip=True))
-        #    if not tempcord:
-        #        continue
-        #        # Dies passiert, wenn angriffe manuell umbenannt werden zB von "Angriff auf Barbarendorf (627|498) K46  Umbenennen"
-        #        # zu "adelsgeschlecht, yay"
-        #
-        #    x=tempcord.group(1)
-        #    y=tempcord.group(2)
-        #
-        #    id_=self.conversion_coord_to_id(x=x, y=y)
-        #
-        #    villages_under_attack.add(id_)
 
         elements=soup.find_all("tr", class_=re.compile('nowrap.*'))
 

@@ -2,19 +2,21 @@
 __author__='sudo'
 
 import re
-from bs4 import BeautifulSoup
-from mechanize._mechanize import LinkNotFoundError
-from tools.toolbox import print_cstring
-from crawl.botContainer import BotContainer
-from crawl.dataminer import FarmTargetHandler
-import mechanize
 import datetime
 from itertools import cycle
-import tools.toolbox
-import tools.settinggen
 from collections import OrderedDict
 import urllib
 import ConfigParser
+
+from bs4 import BeautifulSoup
+from mechanize._mechanize import LinkNotFoundError
+import mechanize
+
+from tools.toolbox import print_cstring
+from crawl.botContainer import BotContainer
+from crawl.dataminer import FarmTargetHandler
+import tools.toolbox
+import tools.settinggen
 
 
 class Bot(BotContainer):
@@ -317,7 +319,6 @@ class Bot(BotContainer):
             print 'skip recruit.'
             return
 
-        print 'sc', self.storage_critical
         def make_units(unit, quantity):
             """
             Just a little function which tries to recruit units
