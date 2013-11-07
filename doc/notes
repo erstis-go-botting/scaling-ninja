@@ -1,0 +1,19 @@
+Bot
+
+Informationen die keine (microsekunden) Zeit zum beschaffen brauchen:
+
+[aus VarGameData]:
+
+account_manager, screen, buildings, coord, ressources/pop, villages
+==> evtl update beim öffnen eines links (bot.open)
+
+Informationen, die konstant sind und nie geupdated werden (in __init__ packen):
+farm/accountmanager, premium, welt, ...?
+
+
+Aktionen des Bots & benötigte Informationen:
+
+Rekrutieren & Bauen: Ressourcen, Gebäude (buildable replacen?)
+Handeln: Ressourcen, Anzahl Trader (evtl schon auf mainsite auslesen, und bei gewissen bedingungen keine urls öffnen)
+Farmen: Einheiten (effizient erkennen im Versammlungsplatz), angegriffenes (evtl speichern, nicht auslesen),
+berichte (auf jeden fall speichern, was auslesen? unterscheidung von premium/nicht premium)

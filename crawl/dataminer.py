@@ -6,9 +6,7 @@ import re
 import datetime
 from math import sqrt
 from collections import OrderedDict
-
 from bs4 import BeautifulSoup
-
 from tools import toolbox
 
 
@@ -332,7 +330,6 @@ class FarmTargetHandler(object):
             add_to_report_storage(data)
             # END OF ITERATION #
 
-
         dangerous=get_dangerous_items()
 
         for item in dangerous:
@@ -401,7 +398,6 @@ class FarmTargetHandler(object):
             print "'get_villages_under_attack' nicht, für eine grosse Anzahl Angriffe (mehr als 1000)"
             print "Bitte ab und an manuell checken ob dieser wert stimmt: Anzahl Angriffe: {length}".format(length=length)
             print "(Wenn gewisse Dörfer mehrmals angegriffen werden, stimmt dieser Wert nicht.)"
-
 
         elements=soup.find_all("tr", class_=re.compile('nowrap.*'))
 

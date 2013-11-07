@@ -761,6 +761,7 @@ class Bot(BotContainer):
 
                 # END OF DECLARATIONS -------------------------------------------------------------- #
             # ATTACKING!
+
             try:
                 barb_send=int(self.config.get('control', 'split'))
             except ConfigParser.NoOptionError:
@@ -794,6 +795,12 @@ class Bot(BotContainer):
 
                 self.combined_farm(target=victim, units={'light': send}, template_id=tn, actioncode=ac)
                 light-=send
+
+            print 'MANUAL - NO BASHING'
+            return
+            #################################
+            # bashing
+            #################################
 
             axe=self.units['axe']['available']
             ram=self.units['ram']['available']
