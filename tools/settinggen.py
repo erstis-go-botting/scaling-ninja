@@ -1,5 +1,6 @@
 # coding=utf-8
 import ConfigParser
+import time
 
 
 class SettingGen(object):
@@ -36,6 +37,7 @@ class SettingGen(object):
 
         with open(self.settingpath, 'wb') as cfile:
             self.config.write(cfile)
+            time.sleep(1)
 
     def generate_description(self):
         """

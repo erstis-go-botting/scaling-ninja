@@ -71,7 +71,6 @@ wall 10
 main 18
 main 20
 garage 3
-stable 12
 barracks 10
 
 market 10
@@ -81,7 +80,7 @@ snob 1
 wall 20
 
 barracks 15
-stable 15
+stable 12
 
 iron 22
 stone 22

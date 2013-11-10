@@ -867,6 +867,10 @@ class Bot(BotContainer):
         if not can_farm():
             return 0
 
+        elif int(self.var_game_settings['player']['villages'])>1:
+            ram_farm()
+            return 0
+
         if is_noob():
             dummy_farm()
             return 0
